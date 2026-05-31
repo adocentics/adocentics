@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DocenteNombramiento.pe — Plataforma MINEDU</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,800;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --rojo:#C0392B;--rojo-o:#922B21;--rojo-c:#FADBD8;
+  --dorado:#D4AC0D;--dorado-c:#FEF9E7;
+  --negro:#1A0A09;--gris:#5D4037;--gc:#F5F0EE;--gm:#D5CBC6;
+  --blanco:#FFFDF9;--verde:#1A7A4A;--vc:#D5F0E3;
+  --azul:#1A4A8A;--azul-c:#D6E4F7;
+  --FT:'Fraunces',serif;--FC:'DM Sans',sans-serif;
+}
+body{background:var(--gc);font-family:var(--FC);color:var(--negro);min-height:100vh}
+
+/* ===== PANTALLAS ===== */
+.pantalla{display:none;min-height:100vh}
+.pantalla.activa{display:flex;flex-direction:column}
+
+/* ===== LOGIN ===== */
+#login{background:var(--negro);align-items:center;justify-content:center;padding:40px 20px}
+.login-box{background:#221310;border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:40px;width:100%;max-width:440px}
+.login-logo{font-family:var(--FT);font-size:26px;color:var(--blanco);font-weight:800;text-align:center;margin-bottom:4px}
+.login-logo span{color:var(--dorado)}
+.login-sub{text-align:center;font-size:13px;color:#5D4037;font-weight:300;margin-bottom:32px}
+.login-tabs{display:flex;background:rgba(255,255,255,.05);border-radius:10px;padding:4px;margin-bottom:24px}
+.ltab{flex:1;padding:9px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:none;color:#7D6E68;font-family:var(--FC);transition:all .2s;text-align:center}
+.ltab.sel{background:var(--rojo);color:var(--blanco)}
+.campo{margin-bottom:16px}
+.campo label{display:block;font-size:11px;color:#7D6E68;font-weight:500;letter-spacing:.4px;margin-bottom:6px}
+.campo input,.campo select{width:100%;background:#2E1A17;border:1px solid rgba(255,255,255,.1);color:var(--blanco);padding:11px 14px;border-radius:8px;font-size:14px;font-family:var(--FC);outline:none}
+.campo select option{background:#2E1A17}
+.btn-login{width:100%;background:var(--rojo);color:var(--blanco);border:none;padding:13px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--FT);font-style:italic;margin-top:4px;transition:background .2s}
+.btn-login:hover{background:var(--rojo-o)}
+.login-nota{color:#3D2B27;font-size:11px;text-align:center;margin-top:14px}
+.login-nota a{color:#5D4037;cursor:pointer}
+
+/* ===== LAYOUT PRINCIPAL ===== */
+#app{flex-direction:row}
+.sidebar{width:230px;background:var(--negro);flex-shrink:0;display:flex;flex-direction:column;height:100vh;position:sticky;top:0;overflow-y:auto}
+.sb-logo{padding:22px 18px 16px;border-bottom:1px solid rgba(255,255,255,.07)}
+.sb-logo-txt{font-family:var(--FT);font-size:16px;color:var(--blanco);font-weight:600}
+.sb-logo-txt span{color:var(--dorado)}
+.sb-logo small{display:block;font-size:10px;color:#3D2B27;font-weight:400;letter-spacing:.5px;margin-top:2px}
+.sb-user{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px}
+.av{width:34px;height:34px;border-radius:50%;background:var(--rojo);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--blanco);flex-shrink:0}
+.sb-nombre{font-size:13px;color:var(--blanco);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-esp{font-size:10px;color:#3D2B27;font-weight:300}
+.sb-nav{padding:10px 8px;flex:1}
+.sb-section{font-size:10px;color:#3D2B27;font-weight:600;letter-spacing:.8px;padding:10px 10px 4px}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13px;color:#7D6E68;cursor:pointer;transition:all .2s;margin-bottom:1px;font-weight:400;border:none;background:none;width:100%;text-align:left;font-family:var(--FC)}
+.ni:hover{background:rgba(255,255,255,.05);color:var(--blanco)}
+.ni.on{background:var(--rojo);color:var(--blanco)}
+.ni-ico{font-size:15px;flex-shrink:0}
+.sb-bottom{padding:12px 8px;border-top:1px solid rgba(255,255,255,.07)}
+
+/* ===== MAIN ===== */
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.topbar{background:var(--blanco);border-bottom:1px solid var(--gm);padding:14px 28px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50}
+.top-titulo{font-family:var(--FT);font-size:20px;font-weight:600}
+.top-r{display:flex;align-items:center;gap:12px}
+.badge{display:inline-block;padding:4px 12px;border-radius:12px;font-size:11px;font-weight:600}
+.badge-plan{background:var(--dorado-c);color:var(--dorado)}
+.badge-nom{background:var(--azul-c);color:var(--azul)}
+.badge-asc{background:var(--vc);color:var(--verde)}
+.contenido{padding:24px 28px;flex:1}
+
+/* ===== CARDS ===== */
+.card{background:var(--blanco);border-radius:14px;padding:22px;border:1.5px solid var(--gm)}
+.card-titulo{font-family:var(--FT);font-size:15px;font-weight:600;margin-bottom:4px}
+.card-sub{font-size:12px;color:var(--gris);font-weight:300;margin-bottom:16px}
+
+/* ===== SELECTOR CONCURSO (DASHBOARD) ===== */
+.selector-concurso{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.card-concurso{border-radius:16px;padding:28px;cursor:pointer;transition:all .25s;border:2px solid transparent;position:relative;overflow:hidden}
+.card-concurso:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,.12)}
+.cc-nom{background:linear-gradient(135deg,var(--negro) 0%,#2A0F0C 100%);border-color:rgba(192,57,43,.3)}
+.cc-asc{background:linear-gradient(135deg,#0A1F0A 0%,#1A3A1A 100%);border-color:rgba(26,122,74,.3)}
+.cc-nom:hover{border-color:var(--rojo)}
+.cc-asc:hover{border-color:var(--verde)}
+.cc-ico{font-size:36px;margin-bottom:14px}
+.cc-titulo{font-family:var(--FT);font-size:22px;font-weight:800;color:var(--blanco);margin-bottom:6px}
+.cc-desc{font-size:13px;color:#7D6E68;font-weight:300;line-height:1.6;margin-bottom:20px}
+.cc-tag{display:inline-block;padding:5px 14px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.3px}
+.tag-nom{background:rgba(192,57,43,.2);color:var(--rojo)}
+.tag-asc{background:rgba(26,122,74,.2);color:var(--verde)}
+.cc-escala{margin-top:10px}
+.escala-item{font-size:11px;color:#5D4037;padding:3px 0;display:flex;align-items:center;gap:6px}
+
+/* ===== STATS ROW ===== */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.stat-c{background:var(--blanco);border-radius:12px;padding:18px;border:1.5px solid transparent;transition:all .2s}
+.stat-c:hover{border-color:var(--gm);transform:translateY(-2px)}
+.stat-label{font-size:10px;color:var(--gris);font-weight:500;letter-spacing:.4px;margin-bottom:6px}
+.stat-val{font-family:var(--FT);font-size:30px;font-weight:800;line-height:1}
+.stat-sub{font-size:11px;color:var(--gris);margin-top:3px;font-weight:300}
+.sv{color:var(--verde)}.sr{color:var(--rojo)}.sd{color:var(--dorado)}.sa{color:var(--azul)}
+
+/* ===== SELECTOR ESPECIALIDAD ===== */
+.sec-tag{display:inline-block;background:var(--rojo-c);color:var(--rojo);padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.3px;margin-bottom:10px}
+.sec-titulo{font-family:var(--FT);font-size:24px;font-weight:700;margin-bottom:6px}
+.sec-sub{font-size:14px;color:var(--gris);font-weight:300;margin-bottom:24px}
+
+.grupos-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.gtab{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--gm);color:var(--gris);background:var(--blanco);transition:all .2s;font-family:var(--FC);letter-spacing:.3px}
+.gtab:hover{border-color:var(--rojo);color:var(--rojo)}
+.gtab.sel{background:var(--rojo);border-color:var(--rojo);color:var(--blanco)}
+.gtab.sel-verde{background:var(--verde);border-color:var(--verde);color:var(--blanco)}
+
+.grid-grupos{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px}
+.grupo-card{background:var(--blanco);border:1.5px solid var(--gm);border-radius:12px;padding:18px;cursor:pointer;transition:all .2s}
+.grupo-card:hover{border-color:var(--rojo);transform:translateY(-2px);box-shadow:0 6px 16px rgba(192,57,43,.1)}
+.grupo-card.sel{border-color:var(--rojo);background:var(--rojo-c)}
+.grupo-card.sel-verde{border-color:var(--verde);background:var(--vc)}
+.gc-num{font-size:10px;color:var(--gris);font-weight:600;letter-spacing:.5px;margin-bottom:4px}
+.gc-modal{font-size:11px;font-weight:600;margin-bottom:4px}
+.gc-modal.ebr{color:var(--azul)}.gc-modal.eba{color:var(--verde)}.gc-modal.ebe{color:#8E44AD}
+.gc-nombre{font-size:13px;font-weight:500;color:var(--negro);line-height:1.3}
+.gc-nivel{font-size:11px;color:var(--gris);font-weight:300;margin-top:2px}
+
+/* ===== CONFIG SIMULACRO ===== */
+.config-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.config-campo label{font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:6px}
+.config-campo select,.config-campo input{width:100%;border:1.5px solid var(--gm);border-radius:8px;padding:10px 14px;font-size:13px;font-family:var(--FC);outline:none;color:var(--negro);background:var(--blanco)}
+.config-campo select:focus,.config-campo input:focus{border-color:var(--rojo)}
+
+.info-prueba{background:var(--dorado-c);border-left:3px solid var(--dorado);border-radius:0 10px 10px 0;padding:16px;margin-bottom:20px}
+.ip-titulo{font-size:12px;font-weight:600;color:#856404;letter-spacing:.3px;margin-bottom:8px}
+.ip-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ip-item{font-size:12px;color:#856404;display:flex;align-items:center;gap:6px}
+
+.btn-iniciar{width:100%;background:var(--rojo);color:var(--blanco);border:none;padding:14px;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--FT);font-style:italic;transition:background .2s;letter-spacing:.3px}
+.btn-iniciar:hover{background:var(--rojo-o)}
+.btn-iniciar-verde{background:var(--verde)}
+.btn-iniciar-verde:hover{background:#145C38}
+
+/* ===== EXAMEN ===== */
+#examen{background:var(--gc)}
+.exam-topbar{background:var(--negro);padding:12px 24px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+.exam-info{display:flex;align-items:center;gap:16px}
+.exam-logo{font-family:var(--FT);font-size:15px;color:var(--blanco);font-weight:600}
+.exam-logo span{color:var(--dorado)}
+.exam-meta{font-size:11px;color:#5D4037}
+.subprueba-indicator{display:flex;gap:8px}
+.sp-chip{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;border:1.5px solid rgba(255,255,255,.1);color:#5D4037}
+.sp-chip.sp-activa{background:var(--rojo);border-color:var(--rojo);color:var(--blanco)}
+.sp-chip.sp-activa-verde{background:var(--azul);border-color:var(--azul);color:var(--blanco)}
+.sp-chip.sp-ok{background:var(--vc);border-color:var(--verde);color:var(--verde)}
+.exam-der{display:flex;align-items:center;gap:14px}
+.timer{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:7px 14px;text-align:center;min-width:80px}
+.timer-label{font-size:9px;color:#3D2B27;letter-spacing:.5px}
+.timer-val{font-family:var(--FT);font-size:20px;font-weight:800;color:var(--blanco);line-height:1.1}
+.timer-val.urgente{color:var(--rojo)}
+.btn-entregar{background:var(--rojo);color:var(--blanco);border:none;padding:8px 18px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC);transition:background .2s}
+.btn-entregar:hover{background:var(--rojo-o)}
+
+.exam-body{display:grid;grid-template-columns:1fr 270px;gap:18px;padding:20px 24px;max-width:1100px;margin:0 auto;width:100%}
+
+/* SUBPRUEBA BANNER */
+.sp-banner{border-radius:10px;padding:12px 18px;margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.sp-banner.hg{background:var(--azul-c);border:1px solid rgba(26,74,138,.2)}
+.sp-banner.esp{background:var(--rojo-c);border:1px solid rgba(192,57,43,.2)}
+.sp-banner.asc{background:var(--vc);border:1px solid rgba(26,122,74,.2)}
+.sp-banner-titulo{font-size:13px;font-weight:600}
+.sp-banner.hg .sp-banner-titulo{color:var(--azul)}
+.sp-banner.esp .sp-banner-titulo{color:var(--rojo)}
+.sp-banner.asc .sp-banner-titulo{color:var(--verde)}
+.sp-banner-desc{font-size:11px;color:var(--gris);font-weight:300;margin-top:2px}
+
+/* PREGUNTA CARD */
+.preg-card{background:var(--blanco);border-radius:14px;padding:28px;border:1.5px solid var(--gm)}
+.preg-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.preg-num-badge{display:flex;gap:8px;align-items:center}
+.preg-n{font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px}
+.preg-pts{background:var(--gc);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;color:var(--gris)}
+.preg-texto{font-family:var(--FT);font-size:18px;font-weight:600;color:var(--negro);line-height:1.5;margin-bottom:24px}
+.opciones{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+.opcion{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-radius:10px;border:2px solid var(--gm);cursor:pointer;transition:all .2s;background:var(--blanco)}
+.opcion:hover{border-color:var(--rojo);background:#FFF8F7}
+.opcion.sel{border-color:var(--rojo);background:var(--rojo-c)}
+.opcion.correcta{border-color:var(--verde);background:var(--vc)}
+.opcion.incorrecta{border-color:var(--rojo);background:var(--rojo-c)}
+.op-letra{width:26px;height:26px;border-radius:50%;border:2px solid var(--gm);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gris);flex-shrink:0;transition:all .2s}
+.opcion.sel .op-letra{background:var(--rojo);border-color:var(--rojo);color:var(--blanco)}
+.opcion.correcta .op-letra{background:var(--verde);border-color:var(--verde);color:var(--blanco)}
+.opcion.incorrecta .op-letra{background:var(--rojo);border-color:var(--rojo);color:var(--blanco)}
+.op-txt{font-size:14px;color:var(--negro);line-height:1.5;padding-top:2px}
+.explicacion{background:var(--vc);border-left:3px solid var(--verde);border-radius:0 10px 10px 0;padding:14px;margin-bottom:20px;display:none}
+.exp-titulo{font-size:11px;font-weight:700;color:var(--verde);letter-spacing:.4px;margin-bottom:4px}
+.exp-txt{font-size:13px;color:#1A4A2F;line-height:1.6;font-weight:300}
+.preg-nav{display:flex;justify-content:space-between;align-items:center}
+.btn-nav-e{background:var(--gc);color:var(--negro);border:1.5px solid var(--gm);padding:9px 20px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC);transition:all .2s}
+.btn-nav-e:hover{border-color:var(--rojo);color:var(--rojo)}
+.btn-nav-e:disabled{opacity:.4;cursor:not-allowed}
+.btn-sig-e{background:var(--rojo);color:var(--blanco);border:none;padding:9px 24px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC);transition:background .2s}
+.btn-sig-e:hover{background:var(--rojo-o)}
+.btn-sig-e.verde{background:var(--verde)}
+.btn-sig-e.verde:hover{background:#145C38}
+
+/* PANEL LATERAL EXAMEN */
+.panel-lat{display:flex;flex-direction:column;gap:14px}
+.lat-card{background:var(--blanco);border-radius:12px;padding:18px;border:1.5px solid var(--gm)}
+.lat-titulo{font-family:var(--FT);font-size:13px;font-weight:600;margin-bottom:12px}
+.mapa{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.mapa-btn{width:100%;aspect-ratio:1;border-radius:6px;border:1.5px solid var(--gm);background:var(--blanco);font-size:11px;font-weight:600;color:var(--gris);cursor:pointer;transition:all .2s;font-family:var(--FC)}
+.mapa-btn:hover{border-color:var(--rojo);color:var(--rojo)}
+.mapa-btn.actual{background:var(--rojo);border-color:var(--rojo);color:var(--blanco)}
+.mapa-btn.resp{background:var(--gc);border-color:var(--gm);color:var(--negro)}
+.mapa-btn.cor{background:var(--vc);border-color:var(--verde);color:var(--verde)}
+.mapa-btn.inc{background:var(--rojo-c);border-color:var(--rojo);color:var(--rojo)}
+.mapa-seccion{font-size:10px;color:var(--gris);font-weight:600;letter-spacing:.4px;margin-bottom:6px;margin-top:10px}
+.mapa-seccion:first-child{margin-top:0}
+.mini-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ms{background:var(--gc);border-radius:8px;padding:10px;text-align:center}
+.ms-val{font-family:var(--FT);font-size:20px;font-weight:800;line-height:1}
+.ms-label{font-size:10px;color:var(--gris);font-weight:400;margin-top:2px;letter-spacing:.3px}
+
+/* PUNTAJE PARCIAL */
+.ptj-parcial{background:var(--negro);border-radius:10px;padding:14px;text-align:center}
+.ptj-label{font-size:10px;color:#5D4037;letter-spacing:.4px;margin-bottom:4px}
+.ptj-val{font-family:var(--FT);font-size:28px;font-weight:800;color:var(--blanco)}
+.ptj-max{font-size:11px;color:#3D2B27;margin-top:2px}
+
+/* ===== RESULTADO ===== */
+#resultado{background:rgba(26,10,9,.9);align-items:center;justify-content:center;position:fixed;inset:0;z-index:500;padding:20px}
+.res-box{background:var(--blanco);border-radius:20px;padding:40px;width:600px;max-width:100%;max-height:90vh;overflow-y:auto}
+.res-header{text-align:center;margin-bottom:28px}
+.res-emoji{font-size:52px;margin-bottom:12px}
+.res-titulo{font-family:var(--FT);font-size:26px;font-weight:800;margin-bottom:6px}
+.res-sub{font-size:13px;color:var(--gris);font-weight:300}
+
+/* PUNTAJE TOTAL */
+.res-puntaje-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.res-ptj-card{border-radius:14px;padding:20px;text-align:center}
+.rpc-hg{background:var(--azul-c)}
+.rpc-esp{background:var(--rojo-c)}
+.rpc-total{background:var(--negro);grid-column:1/-1}
+.rpc-label{font-size:11px;font-weight:600;letter-spacing:.3px;margin-bottom:6px}
+.rpc-hg .rpc-label{color:var(--azul)}
+.rpc-esp .rpc-label{color:var(--rojo)}
+.rpc-total .rpc-label{color:#7D6E68}
+.rpc-val{font-family:var(--FT);font-size:36px;font-weight:800;line-height:1}
+.rpc-hg .rpc-val{color:var(--azul)}
+.rpc-esp .rpc-val{color:var(--rojo)}
+.rpc-total .rpc-val{color:var(--blanco);font-size:48px}
+.rpc-max{font-size:12px;font-weight:300;margin-top:4px}
+.rpc-hg .rpc-max{color:var(--azul)}
+.rpc-esp .rpc-max{color:var(--rojo)}
+.rpc-total .rpc-max{color:#5D4037}
+
+.res-aprueba{display:inline-flex;align-items:center;gap:8px;padding:8px 20px;border-radius:20px;font-size:13px;font-weight:600;margin-bottom:24px}
+.aprueba-si{background:var(--vc);color:var(--verde)}
+.aprueba-no{background:var(--rojo-c);color:var(--rojo)}
+
+.res-desglose{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px}
+.rd-item{background:var(--gc);border-radius:10px;padding:14px;text-align:center}
+.rd-val{font-family:var(--FT);font-size:22px;font-weight:700}
+.rd-label{font-size:10px;color:var(--gris);font-weight:400;margin-top:2px;letter-spacing:.3px}
+
+.res-btns{display:flex;gap:10px}
+.btn-res-p{flex:1;background:var(--rojo);color:var(--blanco);border:none;padding:12px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--FC);transition:background .2s}
+.btn-res-p:hover{background:var(--rojo-o)}
+.btn-res-s{flex:1;background:var(--gc);color:var(--negro);border:none;padding:12px;border-radius:8px;font-size:14px;cursor:pointer;font-family:var(--FC)}
+
+/* ASCENSO — escalas */
+.escalas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:20px}
+.escala-card{border-radius:10px;padding:16px;border:2px solid transparent;cursor:pointer;transition:all .2s;text-align:center}
+.escala-card:hover{transform:translateY(-2px)}
+.esc-1{background:#FEF9E7;border-color:rgba(212,172,13,.3)}.esc-1.sel{border-color:var(--dorado)}
+.esc-2{background:#EBF5FB;border-color:rgba(41,128,185,.3)}.esc-2.sel{border-color:#2980B9}
+.esc-3{background:var(--vc);border-color:rgba(26,122,74,.3)}.esc-3.sel{border-color:var(--verde)}
+.esc-4{background:var(--rojo-c);border-color:rgba(192,57,43,.3)}.esc-4.sel{border-color:var(--rojo)}
+.esc-5{background:#F4ECF7;border-color:rgba(142,68,173,.3)}.esc-5.sel{border-color:#8E44AD}
+.esc-6{background:#FDF2E9;border-color:rgba(230,126,34,.3)}.esc-6.sel{border-color:#E67E22}
+.esc-num{font-family:var(--FT);font-size:22px;font-weight:800;margin-bottom:4px}
+.esc-1 .esc-num{color:var(--dorado)}.esc-2 .esc-num{color:#2980B9}.esc-3 .esc-num{color:var(--verde)}
+.esc-4 .esc-num{color:var(--rojo)}.esc-5 .esc-num{color:#8E44AD}.esc-6 .esc-num{color:#E67E22}
+.esc-nombre{font-size:11px;font-weight:500;color:var(--negro)}
+.esc-sueldo{font-size:10px;color:var(--gris);font-weight:300;margin-top:2px}
+
+/* HISTORIAL */
+.hist-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--gc)}
+.hist-item:last-child{border:none}
+.hist-izq{display:flex;align-items:center;gap:10px}
+.hist-ico{width:36px;height:36px;border-radius:8px;background:var(--gc);display:flex;align-items:center;justify-content:center;font-size:16px}
+.hist-nombre{font-size:13px;font-weight:500}
+.hist-meta{font-size:11px;color:var(--gris);font-weight:300;margin-top:1px}
+.hist-puntaje{font-family:var(--FT);font-size:18px;font-weight:700}
+
+/* PROGRESO BARRAS */
+.prog-item{margin-bottom:12px}
+.prog-label{display:flex;justify-content:space-between;font-size:12px;color:var(--gris);margin-bottom:5px}
+.prog-barra{background:var(--gc);border-radius:10px;height:7px;overflow:hidden}
+.prog-fill{height:100%;border-radius:10px;background:var(--rojo);transition:width 1s ease}
+
+/* MATERIALES */
+.mat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mat-item{background:var(--gc);border-radius:10px;padding:14px;display:flex;align-items:center;gap:10px;cursor:pointer;border:1.5px solid transparent;transition:all .2s}
+.mat-item:hover{border-color:var(--rojo);background:var(--blanco)}
+.mat-ico{font-size:22px}
+.mat-nombre{font-size:12px;font-weight:500}
+.mat-tipo{font-size:10px;color:var(--gris);font-weight:300}
+
+/* ALERTAS */
+.alerta{display:flex;gap:12px;padding:12px;border-radius:10px;margin-bottom:10px}
+.al-urgente{background:#FEF3CD;border-left:3px solid var(--dorado)}
+.al-info{background:var(--rojo-c);border-left:3px solid var(--rojo)}
+.al-verde{background:var(--vc);border-left:3px solid var(--verde)}
+.al-titulo{font-size:13px;font-weight:500}
+.al-desc{font-size:11px;color:var(--gris);font-weight:300;margin-top:2px;line-height:1.5}
+
+/* DOS COLUMNAS */
+.dos-col{display:grid;grid-template-columns:1fr 320px;gap:16px;margin-top:16px}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:500;z-index:9999;font-family:var(--FC);box-shadow:0 4px 16px rgba(0,0,0,.2);animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.contenido>*,.selector-concurso,.stats-row{animation:fadeIn .35s ease both}
+</style>
+</head>
+<body>
+
+<!-- ==================== LOGIN ==================== -->
+<div class="pantalla activa" id="login">
+  <div class="login-box">
+    <div class="login-logo">Docente<span>Nom</span>.pe</div>
+    <div class="login-sub">Plataforma oficial alineada al MINEDU · Nombramiento y Ascenso</div>
+    <div class="login-tabs">
+      <button class="ltab sel" onclick="selLoginTab(this,'nom')">Nombramiento / Contrato</button>
+      <button class="ltab" onclick="selLoginTab(this,'asc')">Ascenso de Escala</button>
+    </div>
+    <div class="campo">
+      <label>CORREO ELECTRÓNICO</label>
+      <input type="email" id="login-email" placeholder="correo@ejemplo.com">
+    </div>
+    <div class="campo">
+      <label>CONTRASEÑA</label>
+      <input type="password" id="login-pass" placeholder="••••••••">
+    </div>
+    <div class="campo">
+      <label>MODALIDAD</label>
+      <select id="login-modalidad">
+        <option value="EBR">EBR — Educación Básica Regular</option>
+        <option value="EBA">EBA — Educación Básica Alternativa</option>
+        <option value="EBE">EBE — Educación Básica Especial</option>
+      </select>
+    </div>
+    <button class="btn-login" onclick="ingresar()">Ingresar a la plataforma →</button>
+    <div class="login-nota">¿No tienes acceso? <a onclick="abrirWhatsApp('acceso')">Escríbenos por WhatsApp</a></div>
+  </div>
+</div>
+
+<!-- ==================== APP PRINCIPAL ==================== -->
+<div class="pantalla" id="app">
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-txt">DocenteNom<span>.pe</span></div>
+      <small>PLATAFORMA MINEDU</small>
+    </div>
+    <div class="sb-user">
+      <div class="av" id="sb-av">MR</div>
+      <div>
+        <div class="sb-nombre" id="sb-nombre">María Ríos Salazar</div>
+        <div class="sb-esp" id="sb-esp">📐 EBR Sec. · Matemática</div>
+      </div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-section">INICIO</div>
+      <button class="ni on" onclick="irA('dashboard')"><span class="ni-ico">🏠</span> Dashboard</button>
+      <div class="sb-section">NOMBRAMIENTO</div>
+      <button class="ni" onclick="irA('sel-nom')"><span class="ni-ico">📝</span> Nuevo simulacro</button>
+      <button class="ni" onclick="irA('historial')"><span class="ni-ico">📊</span> Mi historial</button>
+      <button class="ni" onclick="irA('progreso')"><span class="ni-ico">📈</span> Mi progreso</button>
+      <div class="sb-section">ASCENSO</div>
+      <button class="ni" onclick="irA('sel-asc')"><span class="ni-ico">🚀</span> Simulacro ascenso</button>
+      <button class="ni" onclick="irA('escalas')"><span class="ni-ico">🎯</span> Escalas magisteriales</button>
+      <div class="sb-section">RECURSOS</div>
+      <button class="ni" onclick="irA('materiales')"><span class="ni-ico">📂</span> Materiales MINEDU</button>
+      <button class="ni" onclick="irA('alertas')"><span class="ni-ico">🔔</span> Alertas y fechas</button>
+      <button class="ni" onclick="irA('ranking')"><span class="ni-ico">🏆</span> Ranking</button>
+    </nav>
+    <div class="sb-bottom">
+      <button class="ni" onclick="salir()"><span class="ni-ico">🚪</span> Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="top-titulo" id="top-titulo">Dashboard</div>
+      <div class="top-r">
+        <span class="badge badge-plan">⭐ Plan Completo</span>
+        <span class="badge badge-nom" id="badge-concurso">Nombramiento 2025</span>
+      </div>
+    </div>
+
+    <div class="contenido" id="contenido">
+      <!-- Se rellena dinámicamente -->
+    </div>
+  </div>
+</div>
+
+<!-- ==================== EXAMEN ==================== -->
+<div class="pantalla" id="examen">
+  <div class="exam-topbar">
+    <div class="exam-info">
+      <div class="exam-logo">Docente<span>Nom</span>.pe</div>
+      <div class="exam-meta" id="exam-meta">Simulacro · EBR Sec. Matemática</div>
+      <div class="subprueba-indicator" id="sp-indicator"></div>
+    </div>
+    <div class="exam-der">
+      <div style="display:flex;align-items:center;gap:6px">
+        <div class="timer">
+          <div class="timer-label">TIEMPO</div>
+          <div class="timer-val" id="timer">3:45:00</div>
+        </div>
+      </div>
+      <button class="btn-entregar" onclick="confirmarEntrega()">Entregar examen</button>
+    </div>
+  </div>
+  <div class="exam-body">
+    <div>
+      <div id="sp-banner"></div>
+      <div class="preg-card">
+        <div class="preg-head">
+          <div class="preg-num-badge">
+            <span class="preg-n" id="preg-n">PREGUNTA 1 DE 75</span>
+            <span class="preg-pts" id="preg-pts">2 pts</span>
+          </div>
+          <span class="preg-n" id="preg-area-badge"></span>
+        </div>
+        <div class="preg-texto" id="preg-texto"></div>
+        <div class="opciones" id="opciones"></div>
+        <div class="explicacion" id="explicacion">
+          <div class="exp-titulo">✅ EXPLICACIÓN</div>
+          <div class="exp-txt" id="exp-txt"></div>
+        </div>
+        <div class="preg-nav">
+          <button class="btn-nav-e" id="btn-ant" onclick="irPreg(pregActual-1)" disabled>← Anterior</button>
+          <button class="btn-sig-e" id="btn-sig" onclick="siguiente()">Siguiente →</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel-lat">
+      <div class="lat-card">
+        <div class="lat-titulo">Navegación de preguntas</div>
+        <div id="mapa-wrap"></div>
+      </div>
+      <div class="lat-card">
+        <div class="lat-titulo">Avance</div>
+        <div class="mini-stats">
+          <div class="ms"><div class="ms-val sv" id="ms-resp">0</div><div class="ms-label">RESPONDIDAS</div></div>
+          <div class="ms"><div class="ms-val" style="color:var(--gris)" id="ms-pend">75</div><div class="ms-label">PENDIENTES</div></div>
+        </div>
+      </div>
+      <div class="lat-card">
+        <div class="lat-titulo">Puntaje acumulado</div>
+        <div class="ptj-parcial">
+          <div class="ptj-label">PUNTAJE PARCIAL</div>
+          <div class="ptj-val" id="ptj-parcial">0</div>
+          <div class="ptj-max" id="ptj-max">de 200 puntos</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== RESULTADO ==================== -->
+<div class="pantalla" id="resultado">
+  <div class="res-box">
+    <div class="res-header">
+      <div class="res-emoji" id="res-emoji">🎉</div>
+      <div class="res-titulo" id="res-titulo">¡Felicitaciones!</div>
+      <div class="res-sub" id="res-sub">Simulacro completado</div>
+    </div>
+    <div class="res-puntaje-wrap" id="res-puntaje-wrap"></div>
+    <div style="text-align:center;margin-bottom:20px">
+      <span class="res-aprueba" id="res-aprueba"></span>
+    </div>
+    <div class="res-desglose" id="res-desglose"></div>
+    <div class="res-btns">
+      <button class="btn-res-p" onclick="revisarRespuestas()">Ver respuestas y explicaciones</button>
+      <button class="btn-res-s" onclick="volverDashboard()">Volver al inicio</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATOS OFICIALES MINEDU
+// ============================================================
+const GRUPOS = [
+  // EBR
+  {id:1,mod:'EBR',nivel:'Inicial / PRONOEI',area:'—',tag:'ebr',ico:'👶'},
+  {id:2,mod:'EBR',nivel:'Primaria',area:'—',tag:'ebr',ico:'🏫'},
+  {id:3,mod:'EBR',nivel:'Secundaria',area:'Arte y Cultura',tag:'ebr',ico:'🎨'},
+  {id:4,mod:'EBR',nivel:'Secundaria',area:'Matemática',tag:'ebr',ico:'📐'},
+  {id:5,mod:'EBR',nivel:'Secundaria',area:'Ciencias Sociales',tag:'ebr',ico:'🌍'},
+  {id:6,mod:'EBR',nivel:'Secundaria',area:'Desarrollo Personal, Ciudadanía y Cívica',tag:'ebr',ico:'🤝'},
+  {id:7,mod:'EBR',nivel:'Secundaria',area:'Ciencia y Tecnología',tag:'ebr',ico:'🔬'},
+  {id:8,mod:'EBR',nivel:'Secundaria',area:'Comunicación',tag:'ebr',ico:'📖'},
+  {id:9,mod:'EBR',nivel:'Secundaria',area:'Educación Religiosa',tag:'ebr',ico:'🙏'},
+  {id:10,mod:'EBR',nivel:'Secundaria',area:'Educación para el Trabajo',tag:'ebr',ico:'🔧'},
+  {id:11,mod:'EBR',nivel:'Secundaria',area:'Inglés como Lengua Extranjera',tag:'ebr',ico:'🌐'},
+  {id:12,mod:'EBR',nivel:'Primaria/Secundaria',area:'Innovación Pedagógica (Computación)',tag:'ebr',ico:'💻'},
+  {id:24,mod:'EBR',nivel:'Primaria/Secundaria',area:'Educación Física',tag:'ebr',ico:'⚽'},
+  // EBA
+  {id:13,mod:'EBA',nivel:'Inicial e Intermedio',area:'—',tag:'eba',ico:'📚'},
+  {id:14,mod:'EBA',nivel:'Avanzado',area:'Comunicación',tag:'eba',ico:'📖'},
+  {id:15,mod:'EBA',nivel:'Avanzado',area:'Inglés',tag:'eba',ico:'🌐'},
+  {id:16,mod:'EBA',nivel:'Avanzado',area:'Matemática',tag:'eba',ico:'📐'},
+  {id:17,mod:'EBA',nivel:'Avanzado',area:'Desarrollo Personal y Ciudadano',tag:'eba',ico:'🤝'},
+  {id:18,mod:'EBA',nivel:'Avanzado',area:'Ciencia, Tecnología y Salud',tag:'eba',ico:'🔬'},
+  {id:19,mod:'EBA',nivel:'Avanzado',area:'Educación Religiosa',tag:'eba',ico:'🙏'},
+  {id:20,mod:'EBA',nivel:'Avanzado',area:'Educación para el Trabajo',tag:'eba',ico:'🔧'},
+  {id:21,mod:'EBA',nivel:'Avanzado',area:'Arte y Cultura',tag:'eba',ico:'🎨'},
+  {id:22,mod:'EBA',nivel:'Avanzado',area:'Campo de Ciencias (Matemática + CTS)',tag:'eba',ico:'🧪'},
+  {id:23,mod:'EBA',nivel:'Avanzado',area:'Campo de Humanidades (Comunicación + DPYC)',tag:'eba',ico:'📜'},
+  // EBE
+  {id:26,mod:'EBE',nivel:'Inicial/Primaria/PRITE',area:'Educación Especial',tag:'ebe',ico:'♿'},
+];
+
+// Banco de preguntas por tipo
+const BANCO_HG = [
+  {texto:"Si el 30% de un número es 45, ¿cuánto es el 70% de ese mismo número?",opciones:["95","105","115","125"],correcta:1,explicacion:"El número es 45/0.30 = 150. El 70% de 150 = 0.70 × 150 = 105."},
+  {texto:"¿Cuál de las siguientes palabras es antónima de 'diligente'?",opciones:["Activo","Eficiente","Negligente","Laborioso"],correcta:2,explicacion:"'Diligente' significa trabajador y cuidadoso. Su antónimo es 'negligente', que significa descuidado y perezoso."},
+  {texto:"En una secuencia: 2, 5, 10, 17, 26, ¿cuál es el siguiente número?",opciones:["35","36","37","38"],correcta:2,explicacion:"Las diferencias son: 3, 5, 7, 9... (aumentan de 2 en 2). La siguiente diferencia es 11. Entonces 26 + 11 = 37."},
+  {texto:"Si todos los médicos son profesionales y algunos profesionales son honrados, ¿qué conclusión es válida?",opciones:["Todos los médicos son honrados","Algunos médicos son honrados","Ningún médico es honrado","No se puede concluir nada sobre los médicos"],correcta:3,explicacion:"De las premisas dadas no se puede concluir nada definitivo sobre si los médicos son o no honrados. La lógica nos dice que no hay información suficiente."},
+  {texto:"Un tren viaja a 80 km/h. ¿Cuántos minutos tardará en recorrer 200 km?",opciones:["125","140","150","160"],correcta:2,explicacion:"Tiempo = Distancia/Velocidad = 200/80 = 2.5 horas = 2.5 × 60 = 150 minutos."},
+  {texto:"¿Cuál es el valor de x si 3x + 7 = 22?",opciones:["3","4","5","6"],correcta:2,explicacion:"3x = 22 - 7 = 15. Entonces x = 15/3 = 5."},
+  {texto:"Completa la analogía: LIBRO es a BIBLIOTECA como CUADRO es a:",opciones:["Pincel","Museo","Artista","Marco"],correcta:1,explicacion:"Un libro se guarda/exhibe en una biblioteca. De la misma forma, un cuadro se exhibe en un museo."},
+  {texto:"Si 1/4 de un grupo son mujeres y hay 18 hombres, ¿cuántas personas hay en total?",opciones:["20","22","24","26"],correcta:2,explicacion:"Si 1/4 son mujeres, entonces 3/4 son hombres. 3/4 del total = 18. Total = 18 × 4/3 = 24 personas."},
+];
+
+const BANCO_ESP = {
+  4:[ // Matemática EBR Sec.
+    {texto:"Según el CNEB, el área de Matemática en Educación Secundaria busca que el estudiante desarrolle competencias para:",opciones:["Memorizar fórmulas y algoritmos matemáticos","Resolver problemas en contextos de la vida real aplicando el pensamiento matemático","Aprobar evaluaciones estandarizadas nacionales","Calcular con precisión usando operaciones básicas"],correcta:1,explicacion:"El CNEB establece que la competencia matemática implica resolver problemas en situaciones reales, combinando capacidades de razonamiento, comunicación y modelación matemática.",pts:3},
+    {texto:"¿Cuánto es la suma de los ángulos interiores de un polígono de 8 lados?",opciones:["900°","1080°","1260°","1440°"],correcta:1,explicacion:"La fórmula es (n-2)×180°. Para n=8: (8-2)×180° = 6×180° = 1080°.",pts:3},
+    {texto:"El Marco del Buen Desempeño Docente establece que la competencia 2 del Dominio 1 corresponde a:",opciones:["Gestionar el clima del aula","Conocer y comprender las características de sus estudiantes y sus contextos","Evaluar permanentemente el aprendizaje","Participar en la gestión de la escuela"],correcta:1,explicacion:"La competencia 2 del Dominio 1 (Preparación para el aprendizaje) establece que el docente debe conocer y comprender las características de todos sus estudiantes y sus contextos, los contenidos disciplinares que enseña.",pts:3},
+    {texto:"Un estudiante obtiene 15, 12, 18 y 13 en 4 evaluaciones. Para aprobar necesita un promedio mínimo de 14.5. ¿Qué nota mínima necesita en la quinta evaluación?",opciones:["14","15","16","17"],correcta:1,explicacion:"Suma actual = 15+12+18+13 = 58. Para promedio 14.5 con 5 notas: total necesario = 14.5×5 = 72.5. Nota faltante = 72.5 - 58 = 14.5. Redondeando hacia arriba = 15.",pts:3},
+    {texto:"Según el enfoque de resolución de problemas del CNEB, los procesos matemáticos fundamentales son:",opciones:["Calcular, medir, graficar y estimar","Matematizar, comunicar, representar, elaborar estrategias, usar expresiones y argumentar","Sumar, restar, multiplicar y dividir en contextos reales","Memorizar, aplicar, evaluar y sintetizar"],correcta:1,explicacion:"El CNEB establece 6 procesos matemáticos: matematizar situaciones, comunicar, representar, elaborar y usar estrategias, razonar y argumentar.",pts:3},
+    {texto:"¿Cuál es el área de un triángulo con base 12 cm y altura 8 cm?",opciones:["40 cm²","48 cm²","96 cm²","20 cm²"],correcta:1,explicacion:"Área del triángulo = (base × altura) / 2 = (12 × 8) / 2 = 96/2 = 48 cm².",pts:3},
+    {texto:"En el Currículo Nacional, la competencia 'Resuelve problemas de regularidad, equivalencia y cambio' implica principalmente:",opciones:["Resolver ecuaciones de primer grado solamente","Generalizar patrones, representar y operar con expresiones algebraicas para modelar situaciones","Memorizar fórmulas algebraicas para el álgebra lineal","Calcular funciones en el plano cartesiano"],correcta:1,explicacion:"Esta competencia implica que el estudiante logre caracterizar equivalencias y generalizar regularidades y el cambio de una magnitud con respecto de otra a través de reglas generales.",pts:3},
+    {texto:"¿Cuánto mide la diagonal de un cuadrado cuyo lado mide 6 cm?",opciones:["6√2 cm","8 cm","9 cm","6 cm"],correcta:0,explicacion:"Por Pitágoras: diagonal² = 6² + 6² = 72. Diagonal = √72 = 6√2 cm ≈ 8.49 cm.",pts:3},
+  ],
+  8:[ // Comunicación EBR Sec.
+    {texto:"Según el CNEB, la competencia 'Se comunica oralmente en lengua materna' implica:",opciones:["Solo hablar con fluidez y pronunciación correcta","Interactuar estratégicamente con distintos interlocutores para alcanzar propósitos comunicativos","Memorizar textos literarios para declamación","Aprender las reglas gramaticales del español"],correcta:1,explicacion:"Esta competencia implica la interacción dinámica entre el hablante, oyente, texto oral, situación comunicativa y contexto sociocultural, con propósito comunicativo.",pts:3},
+    {texto:"¿Cuál es la función del texto expositivo?",opciones:["Convencer al lector de una posición","Narrar eventos en orden cronológico","Informar y explicar un tema de manera objetiva","Expresar sentimientos y emociones del autor"],correcta:2,explicacion:"El texto expositivo tiene como propósito informar, explicar o desarrollar un tema con objetividad, usando lenguaje claro y organizado.",pts:3},
+    {texto:"En la evaluación formativa de Comunicación, ¿qué instrumento es más apropiado para valorar la producción de textos?",opciones:["Examen de opción múltiple","Rúbrica con criterios específicos de escritura","Lista de cotejo para verificar asistencia","Prueba de velocidad lectora"],correcta:1,explicacion:"La rúbrica con criterios específicos permite evaluar aspectos cualitativos de la producción escrita como adecuación, coherencia, cohesión y uso de convenciones.",pts:3},
+    {texto:"¿Qué es la cohesión en un texto?",opciones:["La relación lógica entre las ideas del texto","Los mecanismos lingüísticos que conectan las oraciones y párrafos","El propósito comunicativo del autor","La organización visual del texto"],correcta:1,explicacion:"La cohesión se refiere a los recursos lingüísticos (conectores, pronombres, sinónimos, etc.) que aseguran la unidad formal entre las oraciones y párrafos de un texto.",pts:3},
+    {texto:"Según el Marco del Buen Desempeño Docente, la reflexión crítica sobre la práctica pedagógica corresponde al Dominio:",opciones:["Dominio 1 - Preparación para el aprendizaje","Dominio 2 - Enseñanza para el aprendizaje","Dominio 3 - Participación en la gestión","Dominio 4 - Desarrollo de la profesionalidad"],correcta:3,explicacion:"El Dominio 4 'Desarrollo de la profesionalidad e identidad docente' incluye la reflexión sistemática sobre la práctica pedagógica y el trabajo colaborativo con pares.",pts:3},
+  ],
+  7:[ // Ciencia y Tecnología
+    {texto:"Según el CNEB, la competencia 'Explica el mundo físico basándose en conocimientos sobre los seres vivos, materia y energía, biodiversidad, Tierra y Universo' requiere principalmente que el estudiante:",opciones:["Memorice los conceptos científicos básicos","Construya su comprensión sobre los principios, teorías y leyes que rigen el mundo natural y artificial","Repita los experimentos del libro de texto","Copie la información científica de fuentes confiables"],correcta:1,explicacion:"El CNEB enfatiza que el estudiante construya activamente su comprensión del mundo natural y artificial mediante la integración de conceptos, datos, evidencias y modelos científicos.",pts:3},
+    {texto:"¿Cuál es la unidad básica de la vida?",opciones:["El tejido","El órgano","La célula","La molécula de ADN"],correcta:2,explicacion:"La célula es la unidad estructural y funcional básica de todos los seres vivos, según la Teoría Celular enunciada por Schleiden, Schwann y Virchow.",pts:3},
+    {texto:"El enfoque del área de Ciencia y Tecnología en el CNEB es:",opciones:["El enfoque de la enseñanza tradicional","La indagación y alfabetización científica y tecnológica","El aprendizaje por descubrimiento espontáneo","El constructivismo radical"],correcta:1,explicacion:"El CNEB establece que el enfoque del área es la indagación y alfabetización científica y tecnológica, que permite al estudiante cuestionarse, observar, explorar y explicar el mundo.",pts:3},
+  ],
+};
+
+// Banco para ascenso (contenido pedagógico avanzado)
+const BANCO_ASCENSO = [
+  {texto:"Según la Ley de Reforma Magisterial N° 29944, la Carrera Pública Magisterial está organizada en:",opciones:["3 escalas magisteriales","6 escalas magisteriales","8 escalas magisteriales","5 escalas magisteriales"],correcta:1,explicacion:"La Ley 29944 establece 8 escalas magisteriales. El docente ingresa a la 1ra escala y puede ascender progresivamente hasta la 8va mediante evaluaciones.",pts:3,tipo:'hg'},
+  {texto:"¿Cuál es el puntaje mínimo para aprobar la Prueba Nacional en el Concurso de Nombramiento docente?",opciones:["100 puntos","110 puntos","120 puntos","130 puntos"],correcta:1,explicacion:"El puntaje mínimo aprobatorio es 110 puntos de 200 posibles. Además se requiere al menos 84 puntos en la subprueba de Especialidad.",pts:3,tipo:'hg'},
+  {texto:"En el Marco del Buen Desempeño Docente, el Dominio 3 'Participación en la gestión de la escuela articulada a la comunidad' incluye la competencia de:",opciones:["Conocer el contenido disciplinar","Crear un clima favorable al aprendizaje","Participar activamente con actitud democrática en la gestión de la escuela","Desarrollar la identidad profesional docente"],correcta:2,explicacion:"El Dominio 3 incluye competencias para participar en la gestión escolar, con democracia, ética y respeto, y para establecer relaciones de respeto y colaboración con las familias y comunidad.",pts:3,tipo:'esp'},
+  {texto:"La evaluación del desempeño docente (EDD) que se aplica a los docentes de la CPM tiene como propósito principal:",opciones:["Sancionar a los docentes con bajo rendimiento","Mejorar la práctica pedagógica e identificar necesidades de formación","Determinar los aumentos salariales anuales","Seleccionar docentes para cargos directivos"],correcta:1,explicacion:"La EDD tiene como propósito el desarrollo profesional docente. Sus resultados se usan para identificar fortalezas, necesidades de formación y apoyo, no para sancionar.",pts:3,tipo:'esp'},
+  {texto:"Según el CNEB, los enfoques transversales que orientan el trabajo pedagógico son:",opciones:["Enfoque de competencias y enfoque de contenidos","Enfoques de derechos, inclusión, intercultural, igualdad de género, ambiental, orientación al bien común y búsqueda de la excelencia","Enfoque constructivista y conductista","Enfoques pedagógicos de las áreas curriculares"],correcta:1,explicacion:"El CNEB establece 7 enfoques transversales: Derechos, Inclusión o atención a la diversidad, Intercultural, Igualdad de género, Ambiental, Orientación al bien común y Búsqueda de la excelencia.",pts:3,tipo:'esp'},
+  {texto:"El perfil de egreso del CNEB describe al estudiante como:",opciones:["Alguien que aprueba todas las áreas curriculares","Un ciudadano pleno que ejerce sus derechos, contribuye al desarrollo sostenible y actúa con ética","Alguien que domina los contenidos académicos de todas las materias","Una persona bilingüe con competencias tecnológicas avanzadas"],correcta:1,explicacion:"El perfil de egreso describe al estudiante peruano como ciudadano que actúa éticamente, convive respetando diferencias, aporta al desarrollo sostenible y ejerce plena ciudadanía.",pts:3,tipo:'esp'},
+];
+
+// ============================================================
+// ESTADO DE LA APP
+// ============================================================
+let estado = {
+  concurso: 'nom', // 'nom' o 'asc'
+  grupo: null,
+  escala: null,
+  preguntas: [],
+  respuestas: [],
+  pregActual: 0,
+  modoRevision: false,
+  timerSeg: 0,
+  timerInterval: null,
+};
+
+// ============================================================
+// LOGIN
+// ============================================================
+function selLoginTab(el, tipo) {
+  document.querySelectorAll('.ltab').forEach(t=>t.classList.remove('sel'));
+  el.classList.add('sel');
+  estado.concurso = tipo;
+}
+
+function ingresar() {
+  const email = document.getElementById('login-email').value;
+  const pass = document.getElementById('login-pass').value;
+  if (!email || !pass) { toast('Ingresa tu correo y contraseña','#C0392B'); return; }
+  mostrarPantalla('app');
+  irA('dashboard');
+}
+
+function salir() { mostrarPantalla('login'); }
+
+function abrirWhatsApp(tipo) {
+  const msg = tipo==='acceso' ? 'Hola, quiero acceder a la plataforma DocenteNom.pe' : 'Hola, quiero información sobre los paquetes';
+  window.open(`https://wa.me/51999999999?text=${encodeURIComponent(msg)}`,'_blank');
+}
+
+// ============================================================
+// NAVEGACIÓN
+// ============================================================
+function mostrarPantalla(id) {
+  document.querySelectorAll('.pantalla').forEach(p=>{p.classList.remove('activa')});
+  document.getElementById(id).classList.add('activa');
+}
+
+function irA(seccion) {
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  const titulos = {
+    'dashboard':'Dashboard','sel-nom':'Simulacro de Nombramiento','historial':'Mi Historial',
+    'progreso':'Mi Progreso','sel-asc':'Simulacro de Ascenso','escalas':'Escalas Magisteriales',
+    'materiales':'Materiales MINEDU','alertas':'Alertas y Fechas Clave','ranking':'Ranking'
+  };
+  document.getElementById('top-titulo').textContent = titulos[seccion] || seccion;
+  const renders = {
+    'dashboard': renderDashboard,
+    'sel-nom': () => renderSelectorEspecialidad('nom'),
+    'historial': renderHistorial,
+    'progreso': renderProgreso,
+    'sel-asc': () => renderSelectorEspecialidad('asc'),
+    'escalas': renderEscalas,
+    'materiales': renderMateriales,
+    'alertas': renderAlertas,
+    'ranking': renderRanking,
+  };
+  if (renders[seccion]) renders[seccion]();
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard() {
+  document.getElementById('contenido').innerHTML = `
+    <div class="selector-concurso">
+      <div class="card-concurso cc-nom" onclick="irA('sel-nom')">
+        <div class="cc-ico">📝</div>
+        <div class="cc-titulo">Nombramiento Docente</div>
+        <div class="cc-desc">Simulacro oficial: 75 preguntas · 3h 45min · Puntaje sobre 200. Dos subpruebas según la estructura real del MINEDU.</div>
+        <span class="cc-tag tag-nom">Subprueba HG (25 pregs × 2pts) + Especialidad (50 pregs × 3pts)</span>
+        <div class="cc-escala">
+          <div class="escala-item">✓ Habilidades Generales: razonamiento verbal, matemático y lógico</div>
+          <div class="escala-item">✓ 26 grupos de inscripción oficiales EBR / EBA / EBE</div>
+          <div class="escala-item">✓ Mínimo aprobatorio: 110 / 200 pts</div>
+        </div>
+      </div>
+      <div class="card-concurso cc-asc" onclick="irA('sel-asc')">
+        <div class="cc-ico">🚀</div>
+        <div class="cc-titulo">Ascenso de Escala</div>
+        <div class="cc-desc">Prepárate para subir de escala magisterial. Simulacro con enfoque en contenido pedagógico avanzado y Marco BDD.</div>
+        <span class="cc-tag tag-asc">Escalas 1ra a 8va · Sueldos S/1,800 a S/9,801</span>
+        <div class="cc-escala">
+          <div class="escala-item">✓ Contenido del Marco del Buen Desempeño Docente</div>
+          <div class="escala-item">✓ Ley de Reforma Magisterial 29944</div>
+          <div class="escala-item">✓ CNEB: enfoques, competencias y perfiles</div>
+        </div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-c"><div class="stat-label">SIMULACROS REALIZADOS</div><div class="stat-val sv">23</div><div class="stat-sub">este mes</div></div>
+      <div class="stat-c"><div class="stat-label">MEJOR PUNTAJE</div><div class="stat-val">162</div><div class="stat-sub">/ 200 pts · Especialidad</div></div>
+      <div class="stat-c"><div class="stat-label">PROMEDIO GENERAL</div><div class="stat-val sd">138</div><div class="stat-sub">/ 200 pts · ↑ mejorando</div></div>
+      <div class="stat-c"><div class="stat-label">RANKING ESPECIALIDAD</div><div class="stat-val sr">#47</div><div class="stat-sub">de 312 en Matemática</div></div>
+    </div>
+    <div class="dos-col">
+      <div class="card">
+        <div class="card-titulo">Últimos simulacros</div>
+        <div class="card-sub">Historial reciente con puntaje real MINEDU</div>
+        ${renderHistorialItems()}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card">
+          <div class="card-titulo">🔔 Alertas MINEDU</div>
+          <div class="alerta al-urgente"><div>⚠️</div><div><div class="al-titulo">Ascenso 2026 en curso</div><div class="al-desc">Inscripciones abiertas. Vigencia desde el 1 de marzo de 2026.</div></div></div>
+          <div class="alerta al-info"><div>📋</div><div><div class="al-titulo">Bases Nombramiento 2025-2026</div><div class="al-desc">Descarga las bases oficiales desde el portal de MINEDU.</div></div></div>
+        </div>
+        <div class="card" style="background:var(--dorado-c);border-color:rgba(212,172,13,.3)">
+          <div style="font-size:13px;font-weight:600;color:#856404;margin-bottom:8px">💡 ¿Necesitas ayuda?</div>
+          <div style="font-size:12px;color:#856404;font-weight:300;margin-bottom:12px;line-height:1.6">Escríbenos por WhatsApp para renovar tu plan, hacer consultas o recibir asesoría personalizada.</div>
+          <button onclick="abrirWhatsApp('ayuda')" style="width:100%;background:#25D366;color:#fff;border:none;padding:9px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC)">💬 Abrir WhatsApp</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderHistorialItems() {
+  const items = [
+    {ico:'📐',nombre:'EBR Sec. · Matemática · Completo (75 pregs)',fecha:'Hoy, 9:15 am',ptj:162,max:200,ok:true},
+    {ico:'📖',nombre:'EBR Sec. · Comunicación · Solo HG (25 pregs)',fecha:'Ayer, 7:30 pm',ptj:38,max:50,ok:true},
+    {ico:'🚀',nombre:'Ascenso · Simulacro completo',fecha:'Hace 2 días',ptj:105,max:200,ok:false},
+  ];
+  return items.map(i=>`
+    <div class="hist-item">
+      <div class="hist-izq"><div class="hist-ico">${i.ico}</div><div><div class="hist-nombre">${i.nombre}</div><div class="hist-meta">${i.fecha}</div></div></div>
+      <div><div class="hist-puntaje" style="color:${i.ok?'var(--verde)':'var(--rojo)'}">${i.ptj}</div><div style="font-size:10px;color:var(--gris)">/ ${i.max} pts</div></div>
+    </div>`).join('');
+}
+
+// ============================================================
+// SELECTOR ESPECIALIDAD / GRUPO
+// ============================================================
+let filtroMod = 'EBR';
+let grupoSel = null;
+
+function renderSelectorEspecialidad(tipo) {
+  estado.concurso = tipo;
+  const esAsc = tipo === 'asc';
+  filtroMod = 'EBR';
+  grupoSel = null;
+
+  document.getElementById('contenido').innerHTML = `
+    <div class="sec-tag">${esAsc ? '🚀 ASCENSO DE ESCALA' : '📝 NOMBRAMIENTO / CONTRATO'}</div>
+    <div class="sec-titulo">${esAsc ? 'Elige tu especialidad para el simulacro de ascenso' : 'Elige tu grupo de inscripción oficial MINEDU'}</div>
+    <div class="sec-sub">${esAsc ? 'El simulacro incluye contenido pedagógico avanzado, Marco BDD y Ley 29944' : '26 grupos de inscripción según la Norma Técnica del Concurso · EBR · EBA · EBE'}</div>
+
+    ${esAsc ? renderSelectorEscalas() : ''}
+
+    <div class="grupos-tabs" id="mod-tabs">
+      <button class="gtab sel" onclick="filtrarMod('EBR',this)">EBR — Educación Básica Regular</button>
+      <button class="gtab" onclick="filtrarMod('EBA',this)">EBA — Educación Básica Alternativa</button>
+      <button class="gtab" onclick="filtrarMod('EBE',this)">EBE — Educación Básica Especial</button>
+    </div>
+    <div class="grid-grupos" id="grid-grupos"></div>
+
+    <div class="info-prueba" id="info-prueba" style="display:${esAsc?'none':'block'}">
+      <div class="ip-titulo">📋 ESTRUCTURA REAL DE LA PRUEBA NACIONAL — MINEDU</div>
+      <div class="ip-grid">
+        <div class="ip-item">✓ Total: 75 preguntas · 3h 45min</div>
+        <div class="ip-item">✓ Puntaje máximo: 200 puntos</div>
+        <div class="ip-item">✓ Subprueba HG: 25 preg × 2pts = 50 pts</div>
+        <div class="ip-item">✓ Subprueba Especialidad: 50 preg × 3pts = 150 pts</div>
+        <div class="ip-item">✓ Mínimo aprobatorio: 110 / 200 pts</div>
+        <div class="ip-item">✓ Mínimo Especialidad: 84 / 150 pts</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px" id="config-card">
+      <div class="card-titulo">Configurar simulacro</div>
+      <div class="card-sub">Elige el modo de práctica</div>
+      <div class="config-grid">
+        <div class="config-campo">
+          <label>MODO DE SIMULACRO</label>
+          <select id="modo-sim">
+            <option value="completo">Completo (75 preguntas · 3h 45min)</option>
+            <option value="hg">Solo Habilidades Generales (25 preg · 50 min)</option>
+            <option value="esp">Solo Especialidad (50 preg · 2h 30min)</option>
+            <option value="rapido">Práctica rápida (20 preg · 30 min)</option>
+          </select>
+        </div>
+        <div class="config-campo">
+          <label>TIPO DE EVALUACIÓN</label>
+          <select id="tipo-eval">
+            <option>Con temporizador (modo examen)</option>
+            <option>Sin límite de tiempo (modo estudio)</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-iniciar ${esAsc?'btn-iniciar-verde':''}" onclick="iniciarSimulacro()">
+        ${esAsc ? '🚀 Iniciar simulacro de ascenso →' : '📝 Iniciar simulacro de nombramiento →'}
+      </button>
+    </div>
+  `;
+  renderGrupos();
+}
+
+function renderSelectorEscalas() {
+  const escalas = [
+    {n:1,nombre:'Primera Escala',sueldo:'S/1,800',color:'esc-1'},
+    {n:2,nombre:'Segunda Escala',sueldo:'S/2,400',color:'esc-2'},
+    {n:3,nombre:'Tercera Escala',sueldo:'S/3,000',color:'esc-3'},
+    {n:4,nombre:'Cuarta Escala',sueldo:'S/3,600',color:'esc-4'},
+    {n:5,nombre:'Quinta Escala',sueldo:'S/4,500',color:'esc-5'},
+    {n:6,nombre:'Sexta Escala',sueldo:'S/5,500',color:'esc-6'},
+  ];
+  return `
+    <div style="margin-bottom:20px">
+      <div class="card-sub">Selecciona tu escala actual para calibrar el nivel del simulacro:</div>
+      <div class="escalas-grid">
+        ${escalas.map(e=>`
+          <div class="escala-card ${e.color}" onclick="selEscala(${e.n},this)">
+            <div class="esc-num">${e.n}ra</div>
+            <div class="esc-nombre">${e.nombre}</div>
+            <div class="esc-sueldo">${e.sueldo}/mes</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function selEscala(n, el) {
+  document.querySelectorAll('.escala-card').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  estado.escala = n;
+}
+
+function filtrarMod(mod, el) {
+  filtroMod = mod;
+  document.querySelectorAll('.gtab').forEach(t=>t.classList.remove('sel'));
+  el.classList.add('sel');
+  renderGrupos();
+}
+
+function renderGrupos() {
+  const grupos = GRUPOS.filter(g=>g.mod===filtroMod);
+  const esAsc = estado.concurso === 'asc';
+  document.getElementById('grid-grupos').innerHTML = grupos.map(g=>`
+    <div class="grupo-card" onclick="selGrupo(${g.id},this)" id="gc-${g.id}">
+      <div class="gc-num">GRUPO ${g.id}</div>
+      <div class="gc-modal ${g.tag}">${g.mod}</div>
+      <div style="font-size:16px;margin:4px 0">${g.ico}</div>
+      <div class="gc-nombre">${g.area !== '—' ? g.area : g.nivel}</div>
+      <div class="gc-nivel">${g.nivel}</div>
+    </div>`).join('');
+}
+
+function selGrupo(id, el) {
+  document.querySelectorAll('.grupo-card').forEach(c=>c.classList.remove('sel','sel-verde'));
+  const esAsc = estado.concurso === 'asc';
+  el.classList.add(esAsc ? 'sel-verde' : 'sel');
+  grupoSel = id;
+  estado.grupo = GRUPOS.find(g=>g.id===id);
+  toast(`Grupo seleccionado: ${estado.grupo.area !== '—' ? estado.grupo.area : estado.grupo.nivel}`);
+}
+
+// ============================================================
+// INICIAR SIMULACRO
+// ============================================================
+function iniciarSimulacro() {
+  if (!grupoSel && estado.concurso === 'nom') { toast('Selecciona tu grupo de inscripción primero','#C0392B'); return; }
+
+  const modo = document.getElementById('modo-sim')?.value || 'completo';
+  estado.modoRevision = false;
+  estado.pregActual = 0;
+
+  // Armar preguntas según modo y concurso
+  if (estado.concurso === 'asc') {
+    // Ascenso: mezcla de HG + pedagógico avanzado
+    estado.preguntas = [...BANCO_ASCENSO];
+    // Rellenar hasta 25 preguntas
+    while (estado.preguntas.length < 12) estado.preguntas.push(...BANCO_HG.slice(0,3));
+    estado.preguntas = estado.preguntas.slice(0,12);
+    estado.timerSeg = 90 * 60;
+  } else {
+    const bancEsp = BANCO_ESP[grupoSel] || BANCO_ESP[4];
+    if (modo === 'hg') {
+      estado.preguntas = BANCO_HG.map(p=>({...p,subprueba:'hg',pts:2}));
+      estado.timerSeg = 50 * 60;
+    } else if (modo === 'esp') {
+      estado.preguntas = bancEsp.map(p=>({...p,subprueba:'esp',pts:3}));
+      estado.timerSeg = 150 * 60;
+    } else if (modo === 'rapido') {
+      estado.preguntas = [...BANCO_HG.slice(0,5).map(p=>({...p,subprueba:'hg',pts:2})), ...bancEsp.slice(0,5).map(p=>({...p,subprueba:'esp',pts:3}))];
+      estado.timerSeg = 30 * 60;
+    } else {
+      // Completo: 8 HG + todas las esp disponibles
+      estado.preguntas = [...BANCO_HG.map(p=>({...p,subprueba:'hg',pts:2})), ...bancEsp.map(p=>({...p,subprueba:'esp',pts:3}))];
+      estado.timerSeg = 225 * 60;
+    }
+  }
+
+  estado.respuestas = new Array(estado.preguntas.length).fill(null);
+  mostrarPantalla('examen');
+
+  // Meta del examen
+  const g = estado.grupo;
+  document.getElementById('exam-meta').textContent = estado.concurso==='asc' ? `Ascenso de Escala ${estado.escala || ''}` : `${g?g.mod+' · '+g.nivel+(g.area!=='—'?' · '+g.area:''):''}`;
+
+  iniciarTimer();
+  renderPregunta();
+}
+
+// ============================================================
+// EXAMEN
+// ============================================================
+function renderPregunta() {
+  const p = estado.preguntas[estado.pregActual];
+  if (!p) return;
+  const total = estado.preguntas.length;
+  const esHG = p.subprueba === 'hg' || estado.concurso === 'asc' && p.tipo === 'hg';
+
+  // Indicador subprueba
+  const spInd = document.getElementById('sp-indicator');
+  if (estado.concurso === 'nom' && estado.preguntas.some(x=>x.subprueba==='hg') && estado.preguntas.some(x=>x.subprueba==='esp')) {
+    spInd.innerHTML = `
+      <span class="sp-chip ${esHG?'sp-activa-verde':''}">HG (${estado.preguntas.filter(x=>x.subprueba==='hg').length} pregs × 2pts)</span>
+      <span class="sp-chip ${!esHG?'sp-activa':''}">Especialidad (${estado.preguntas.filter(x=>x.subprueba==='esp').length} pregs × 3pts)</span>`;
+  } else { spInd.innerHTML = ''; }
+
+  // Banner subprueba
+  const banner = document.getElementById('sp-banner');
+  if (p.subprueba === 'hg') {
+    banner.innerHTML = `<div class="sp-banner hg"><div>🧠</div><div><div class="sp-banner-titulo">SUBPRUEBA 1 — HABILIDADES GENERALES</div><div class="sp-banner-desc">Razonamiento verbal, matemático y lógico · 2 puntos por pregunta</div></div></div>`;
+  } else if (p.subprueba === 'esp') {
+    banner.innerHTML = `<div class="sp-banner esp"><div>📚</div><div><div class="sp-banner-titulo">SUBPRUEBA 2 — CONOCIMIENTOS PEDAGÓGICOS, CURRICULARES Y DISCIPLINARES</div><div class="sp-banner-desc">Contenido del CNEB y especialidad · 3 puntos por pregunta</div></div></div>`;
+  } else {
+    banner.innerHTML = `<div class="sp-banner asc"><div>🚀</div><div><div class="sp-banner-titulo">SIMULACRO DE ASCENSO DE ESCALA</div><div class="sp-banner-desc">Marco BDD, Ley 29944 y CNEB · Conocimiento pedagógico avanzado</div></div></div>`;
+  }
+
+  document.getElementById('preg-n').textContent = `PREGUNTA ${estado.pregActual+1} DE ${total}`;
+  document.getElementById('preg-pts').textContent = `${p.pts || (esHG?2:3)} puntos`;
+  document.getElementById('preg-area-badge').textContent = p.area || '';
+  document.getElementById('preg-texto').textContent = p.texto;
+
+  // Opciones
+  const opDiv = document.getElementById('opciones');
+  opDiv.innerHTML = '';
+  const letras = ['A','B','C','D'];
+  p.opciones.forEach((op,i)=>{
+    const div = document.createElement('div');
+    div.className = 'opcion';
+    if (estado.modoRevision) {
+      if (i===p.correcta) div.classList.add('correcta');
+      else if (i===estado.respuestas[estado.pregActual] && estado.respuestas[estado.pregActual]!==p.correcta) div.classList.add('incorrecta');
+    } else {
+      if (estado.respuestas[estado.pregActual]===i) div.classList.add('sel');
+    }
+    div.innerHTML = `<div class="op-letra">${letras[i]}</div><div class="op-txt">${op}</div>`;
+    if (!estado.modoRevision) div.onclick = ()=>selOpcion(i);
+    opDiv.appendChild(div);
+  });
+
+  // Explicación
+  const expDiv = document.getElementById('explicacion');
+  if (estado.modoRevision && p.explicacion) {
+    expDiv.style.display = 'block';
+    document.getElementById('exp-txt').textContent = p.explicacion;
+  } else { expDiv.style.display = 'none'; }
+
+  // Navegación
+  document.getElementById('btn-ant').disabled = estado.pregActual===0;
+  const btnSig = document.getElementById('btn-sig');
+  const esUltima = estado.pregActual===total-1;
+  if (esUltima) {
+    btnSig.textContent = estado.modoRevision ? 'Ver resultado' : 'Entregar examen';
+    btnSig.onclick = estado.modoRevision ? mostrarResultado : confirmarEntrega;
+    btnSig.className = 'btn-sig-e';
+  } else {
+    btnSig.textContent = 'Siguiente →';
+    btnSig.onclick = siguiente;
+    btnSig.className = estado.concurso==='asc' ? 'btn-sig-e verde' : 'btn-sig-e';
+  }
+
+  // Puntaje parcial
+  let pts = 0;
+  estado.preguntas.forEach((pr,i)=>{ if (estado.respuestas[i]===pr.correcta) pts += (pr.pts||(pr.subprueba==='hg'?2:3)); });
+  document.getElementById('ptj-parcial').textContent = pts;
+  const maxPts = estado.preguntas.reduce((a,pr)=>a+(pr.pts||(pr.subprueba==='hg'?2:3)),0);
+  document.getElementById('ptj-max').textContent = `de ${maxPts} puntos`;
+
+  renderMapa();
+  actualizarStats();
+}
+
+function selOpcion(i) {
+  estado.respuestas[estado.pregActual] = i;
+  renderPregunta();
+}
+
+function siguiente() {
+  if (estado.pregActual < estado.preguntas.length-1) { estado.pregActual++; renderPregunta(); }
+}
+
+function irPreg(n) {
+  if (n>=0 && n<estado.preguntas.length) { estado.pregActual=n; renderPregunta(); }
+}
+
+function renderMapa() {
+  const wrap = document.getElementById('mapa-wrap');
+  const tieneHG = estado.preguntas.some(p=>p.subprueba==='hg');
+  const tieneEsp = estado.preguntas.some(p=>p.subprueba==='esp');
+  let html = '';
+
+  if (tieneHG) {
+    html += `<div class="mapa-seccion">🧠 HABILIDADES GENERALES</div><div class="mapa">`;
+    estado.preguntas.forEach((p,i)=>{
+      if (p.subprueba!=='hg') return;
+      const cls = i===estado.pregActual ? 'actual' : estado.modoRevision && estado.respuestas[i]!==null ? (estado.respuestas[i]===p.correcta?'cor':'inc') : estado.respuestas[i]!==null ? 'resp' : '';
+      html += `<button class="mapa-btn ${cls}" onclick="irPreg(${i})">${i+1}</button>`;
+    });
+    html += `</div>`;
+  }
+  if (tieneEsp) {
+    html += `<div class="mapa-seccion">📚 ESPECIALIDAD</div><div class="mapa">`;
+    estado.preguntas.forEach((p,i)=>{
+      if (p.subprueba!=='esp') return;
+      const cls = i===estado.pregActual ? 'actual' : estado.modoRevision && estado.respuestas[i]!==null ? (estado.respuestas[i]===p.correcta?'cor':'inc') : estado.respuestas[i]!==null ? 'resp' : '';
+      html += `<button class="mapa-btn ${cls}" onclick="irPreg(${i})">${i+1}</button>`;
+    });
+    html += `</div>`;
+  }
+  if (!tieneHG && !tieneEsp) {
+    html += `<div class="mapa">`;
+    estado.preguntas.forEach((_,i)=>{
+      const p = estado.preguntas[i];
+      const cls = i===estado.pregActual ? 'actual' : estado.modoRevision && estado.respuestas[i]!==null ? (estado.respuestas[i]===p.correcta?'cor':'inc') : estado.respuestas[i]!==null ? 'resp' : '';
+      html += `<button class="mapa-btn ${cls}" onclick="irPreg(${i})">${i+1}</button>`;
+    });
+    html += `</div>`;
+  }
+  wrap.innerHTML = html;
+}
+
+function actualizarStats() {
+  const resp = estado.respuestas.filter(r=>r!==null).length;
+  document.getElementById('ms-resp').textContent = resp;
+  document.getElementById('ms-pend').textContent = estado.preguntas.length - resp;
+}
+
+// ============================================================
+// TIMER
+// ============================================================
+function iniciarTimer() {
+  clearInterval(estado.timerInterval);
+  estado.timerInterval = setInterval(()=>{
+    estado.timerSeg--;
+    const h = Math.floor(estado.timerSeg/3600);
+    const m = Math.floor((estado.timerSeg%3600)/60);
+    const s = estado.timerSeg%60;
+    const el = document.getElementById('timer');
+    el.textContent = h>0 ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    if (estado.timerSeg<=300) el.classList.add('urgente');
+    if (estado.timerSeg<=0) { clearInterval(estado.timerInterval); mostrarResultado(); }
+  },1000);
+}
+
+// ============================================================
+// RESULTADO
+// ============================================================
+function confirmarEntrega() {
+  const sin = estado.respuestas.filter(r=>r===null).length;
+  if (sin > 0 && !estado.modoRevision) {
+    if (!confirm(`Tienes ${sin} pregunta${sin>1?'s':''} sin responder. ¿Deseas entregar el examen?`)) return;
+  }
+  mostrarResultado();
+}
+
+function mostrarResultado() {
+  clearInterval(estado.timerInterval);
+  let ptsTotalHG=0, ptsTotalEsp=0, correctas=0, incorrectas=0, sin=0;
+  const maxHG = estado.preguntas.filter(p=>p.subprueba==='hg').reduce((a,p)=>a+(p.pts||2),0);
+  const maxEsp = estado.preguntas.filter(p=>p.subprueba==='esp').reduce((a,p)=>a+(p.pts||3),0);
+  const maxTotal = maxHG + maxEsp || estado.preguntas.reduce((a,p)=>a+(p.pts||3),0);
+
+  estado.preguntas.forEach((p,i)=>{
+    if (estado.respuestas[i]===null) sin++;
+    else if (estado.respuestas[i]===p.correcta) {
+      correctas++;
+      const pts = p.pts||(p.subprueba==='hg'?2:3);
+      if (p.subprueba==='hg') ptsTotalHG+=pts;
+      else ptsTotalEsp+=pts;
+    } else incorrectas++;
+  });
+
+  const ptsAsc = estado.concurso==='asc' ? (correctas * 3) : 0;
+  const puntajeTotal = estado.concurso==='asc' ? ptsAsc : (ptsTotalHG+ptsTotalEsp);
+  const aprueba = estado.concurso==='asc' ? puntajeTotal>=(maxTotal*0.55) : puntajeTotal>=110;
+
+  // Emoji y título
+  let emoji='🎉', titulo='¡Felicitaciones!';
+  const pct = puntajeTotal/maxTotal;
+  if (pct<0.5) {emoji='😓';titulo='Sigue practicando';}
+  else if (pct<0.65) {emoji='💪';titulo='Buen intento';}
+  else if (pct<0.8) {emoji='😊';titulo='Muy bien hecho';}
+  document.getElementById('res-emoji').textContent=emoji;
+  document.getElementById('res-titulo').textContent=titulo;
+  document.getElementById('res-sub').textContent=`Simulacro de ${estado.concurso==='asc'?'Ascenso de Escala':'Nombramiento Docente'} completado`;
+
+  // Puntaje wrap
+  let puntajeHTML = '';
+  if (estado.concurso==='nom' && maxHG>0 && maxEsp>0) {
+    puntajeHTML = `
+      <div class="res-ptj-card rpc-hg">
+        <div class="rpc-label">HABILIDADES GENERALES</div>
+        <div class="rpc-val">${ptsTotalHG}</div>
+        <div class="rpc-max">de ${maxHG} puntos</div>
+      </div>
+      <div class="res-ptj-card rpc-esp">
+        <div class="rpc-label">ESPECIALIDAD</div>
+        <div class="rpc-val">${ptsTotalEsp}</div>
+        <div class="rpc-max">de ${maxEsp} puntos · mín. 84</div>
+      </div>
+      <div class="res-ptj-card rpc-total">
+        <div class="rpc-label">PUNTAJE TOTAL</div>
+        <div class="rpc-val" style="color:${aprueba?'#2ECC71':'var(--rojo)'}">${puntajeTotal}</div>
+        <div class="rpc-max">de ${maxTotal} puntos · mín. aprobatorio: 110</div>
+      </div>`;
+  } else {
+    puntajeHTML = `<div class="res-ptj-card rpc-total" style="grid-column:1/-1">
+      <div class="rpc-label">PUNTAJE TOTAL</div>
+      <div class="rpc-val" style="color:${aprueba?'#2ECC71':'var(--rojo)'}">${puntajeTotal}</div>
+      <div class="rpc-max">de ${maxTotal} puntos</div>
+    </div>`;
+  }
+  document.getElementById('res-puntaje-wrap').innerHTML = puntajeHTML;
+
+  document.getElementById('res-aprueba').className = `res-aprueba ${aprueba?'aprueba-si':'aprueba-no'}`;
+  document.getElementById('res-aprueba').textContent = aprueba ? '✅ APRUEBA el puntaje mínimo' : '❌ No alcanza el puntaje mínimo — ¡sigue practicando!';
+
+  document.getElementById('res-desglose').innerHTML = `
+    <div class="rd-item"><div class="rd-val sv">${correctas}</div><div class="rd-label">CORRECTAS</div></div>
+    <div class="rd-item"><div class="rd-val sr">${incorrectas}</div><div class="rd-label">INCORRECTAS</div></div>
+    <div class="rd-item"><div class="rd-val" style="color:var(--gris)">${sin}</div><div class="rd-label">SIN RESPONDER</div></div>`;
+
+  mostrarPantalla('resultado');
+}
+
+function revisarRespuestas() {
+  estado.modoRevision = true;
+  estado.pregActual = 0;
+  mostrarPantalla('examen');
+  renderPregunta();
+}
+
+function volverDashboard() {
+  clearInterval(estado.timerInterval);
+  mostrarPantalla('app');
+  irA('dashboard');
+}
+
+// ============================================================
+// HISTORIAL, PROGRESO, MATERIALES, ALERTAS, RANKING, ESCALAS
+// ============================================================
+function renderHistorial() {
+  document.getElementById('contenido').innerHTML = `
+    <div class="stats-row">
+      <div class="stat-c"><div class="stat-label">TOTAL SIMULACROS</div><div class="stat-val">31</div><div class="stat-sub">nombramiento + ascenso</div></div>
+      <div class="stat-c"><div class="stat-label">MEJOR PUNTAJE NOM.</div><div class="stat-val sv">162</div><div class="stat-sub">/ 200 pts</div></div>
+      <div class="stat-c"><div class="stat-label">MEJOR PUNTAJE ASC.</div><div class="stat-val sa">138</div><div class="stat-sub">/ 200 pts</div></div>
+      <div class="stat-c"><div class="stat-label">PROMEDIO ÚLTIMO MES</div><div class="stat-val sd">144</div><div class="stat-sub">/ 200 pts · mejorando</div></div>
+    </div>
+    <div class="card">
+      <div class="card-titulo">Historial completo de simulacros</div>
+      <div class="card-sub">Nombramiento y Ascenso · con puntaje real MINEDU</div>
+      ${[
+        {ico:'📐',tipo:'Nombramiento',esp:'EBR Sec. Matemática',modo:'Completo (75 preg)',fecha:'Hoy 9:15am',hg:40,esp2:122,total:162,max:200,ok:true},
+        {ico:'🚀',tipo:'Ascenso',esp:'Escalas 1→2',modo:'Completo (25 preg)',fecha:'Ayer 7:30pm',hg:30,esp2:75,total:105,max:200,ok:false},
+        {ico:'📐',tipo:'Nombramiento',esp:'EBR Sec. Matemática',modo:'Solo HG (25 preg)',fecha:'Hace 2 días',hg:38,esp2:0,total:38,max:50,ok:true},
+        {ico:'📐',tipo:'Nombramiento',esp:'EBR Sec. Matemática',modo:'Solo Especialidad (50 preg)',fecha:'Hace 3 días',hg:0,esp2:120,total:120,max:150,ok:true},
+        {ico:'📐',tipo:'Nombramiento',esp:'EBR Sec. Matemática',modo:'Práctica rápida (20 preg)',fecha:'Hace 4 días',hg:14,esp2:30,total:44,max:70,ok:true},
+      ].map(s=>`
+        <div class="hist-item">
+          <div class="hist-izq">
+            <div class="hist-ico">${s.ico}</div>
+            <div>
+              <div class="hist-nombre" style="display:flex;align-items:center;gap:8px">
+                ${s.tipo}
+                <span class="badge ${s.tipo==='Ascenso'?'badge-asc':'badge-nom'}" style="font-size:10px">${s.tipo}</span>
+              </div>
+              <div class="hist-meta">${s.esp} · ${s.modo} · ${s.fecha}</div>
+              ${s.hg>0&&s.esp2>0?`<div style="font-size:11px;color:var(--gris);margin-top:2px">HG: ${s.hg}pts + Esp: ${s.esp2}pts</div>`:''}
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="hist-puntaje" style="color:${s.ok?'var(--verde)':'var(--rojo)'}">${s.total}</div>
+            <div style="font-size:10px;color:var(--gris)">/ ${s.max} pts</div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function renderProgreso() {
+  document.getElementById('contenido').innerHTML = `
+    <div class="dos-col">
+      <div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-titulo">Progreso en Habilidades Generales</div>
+          <div class="card-sub">Evolución en la Subprueba 1 (máx. 50 pts)</div>
+          ${[
+            {tema:'Razonamiento Verbal',ptj:38,max:50,pct:76},
+            {tema:'Razonamiento Matemático',ptj:42,max:50,pct:84},
+            {tema:'Razonamiento Lógico',ptj:35,max:50,pct:70},
+          ].map(p=>`
+            <div class="prog-item">
+              <div class="prog-label"><span>${p.tema}</span><span>${p.ptj}/${p.max} pts (${p.pct}%)</span></div>
+              <div class="prog-barra"><div class="prog-fill" style="width:${p.pct}%;background:var(--azul)"></div></div>
+            </div>`).join('')}
+        </div>
+        <div class="card">
+          <div class="card-titulo">Progreso en Especialidad (Matemática)</div>
+          <div class="card-sub">Evolución en la Subprueba 2 (máx. 150 pts)</div>
+          ${[
+            {tema:'Conocimientos Disciplinares (Aritmética)',ptj:88,max:100,pct:88,col:'var(--verde)'},
+            {tema:'Conocimientos Disciplinares (Álgebra)',ptj:65,max:100,pct:65,col:'var(--dorado)'},
+            {tema:'Conocimientos Disciplinares (Geometría)',ptj:72,max:100,pct:72,col:'var(--verde)'},
+            {tema:'Conocimientos Pedagógicos (CNEB)',ptj:55,max:100,pct:55,col:'var(--dorado)'},
+            {tema:'Conocimientos Curriculares (Marco BDD)',ptj:48,max:100,pct:48,col:'var(--rojo)'},
+          ].map(p=>`
+            <div class="prog-item">
+              <div class="prog-label"><span>${p.tema}</span><span>${p.pct}%</span></div>
+              <div class="prog-barra"><div class="prog-fill" style="width:${p.pct}%;background:${p.col}"></div></div>
+            </div>`).join('')}
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card">
+          <div class="card-titulo">Evolución del puntaje</div>
+          <div class="card-sub">Últimos 5 simulacros completos</div>
+          ${[162,138,145,120,108].map((p,i)=>`
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+              <span style="font-size:11px;color:var(--gris);width:50px">Sim. ${5-i}</span>
+              <div style="flex:1;background:var(--gc);border-radius:6px;height:8px;overflow:hidden">
+                <div style="width:${p/2}%;height:100%;background:${p>=110?'var(--verde)':'var(--rojo)'};border-radius:6px"></div>
+              </div>
+              <span style="font-family:var(--FT);font-size:14px;font-weight:700;color:${p>=110?'var(--verde)':'var(--rojo)'};width:36px">${p}</span>
+            </div>`).join('')}
+          <div style="font-size:11px;color:var(--gris);margin-top:8px">Línea de aprobación: 110 / 200 pts</div>
+        </div>
+        <div class="card" style="background:var(--vc);border-color:rgba(26,122,74,.3)">
+          <div style="font-size:13px;font-weight:600;color:var(--verde);margin-bottom:8px">🎯 Recomendaciones</div>
+          <div style="font-size:12px;color:#1A4A2F;font-weight:300;line-height:1.7">
+            Refuerza: <strong>Marco BDD</strong> y <strong>Currículo Nacional</strong> donde estás más bajo.<br>
+            Tu punto fuerte: <strong>Razonamiento Matemático</strong> (84%).<br>
+            Meta sugerida: llegar a <strong>160+ puntos</strong> para mayor seguridad.
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderEscalas() {
+  const escalas = [
+    {n:1,sueldo:'S/1,800',req:'Ingreso a la CPM por concurso de nombramiento'},
+    {n:2,sueldo:'S/2,400',req:'Mínimo 3 años en 1ra escala + aprobar evaluación'},
+    {n:3,sueldo:'S/3,000',req:'Mínimo 3 años en 2da escala + aprobar evaluación · Acceso a cargos directivos'},
+    {n:4,sueldo:'S/3,600',req:'Mínimo 3 años en 3ra escala + aprobar evaluación · Puede concursar a Director DRE/UGEL'},
+    {n:5,sueldo:'S/4,500',req:'Mínimo 3 años en 4ta escala + aprobar evaluación'},
+    {n:6,sueldo:'S/5,500',req:'Mínimo 3 años en 5ta escala + aprobar evaluación'},
+    {n:7,sueldo:'S/7,000',req:'Mínimo 3 años en 6ta escala + aprobar evaluación'},
+    {n:8,sueldo:'S/9,801',req:'Escala máxima · Reconocimiento por excelencia docente'},
+  ];
+  const cols = ['esc-1','esc-2','esc-3','esc-4','esc-5','esc-6','esc-1','esc-2'];
+  document.getElementById('contenido').innerHTML = `
+    <div class="sec-tag">🚀 ESCALAS MAGISTERIALES — LEY 29944</div>
+    <div class="sec-titulo">Carrera Pública Magisterial</div>
+    <div class="sec-sub">8 escalas de ascenso · Los sueldos pueden variar según actualización del MINEDU</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:20px">
+      ${escalas.map((e,i)=>`
+        <div class="card" style="border-left:4px solid ${i<2?'var(--dorado)':i<4?'var(--verde)':i<6?'var(--azul)':'var(--rojo)'}">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+            <div>
+              <div style="font-size:10px;color:var(--gris);font-weight:600;letter-spacing:.4px">ESCALA ${e.n}</div>
+              <div style="font-family:var(--FT);font-size:22px;font-weight:800">${e.n}ra Escala Magisterial</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-family:var(--FT);font-size:20px;font-weight:700;color:var(--verde)">${e.sueldo}</div>
+              <div style="font-size:10px;color:var(--gris)">por mes</div>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--gris);font-weight:300;line-height:1.6">${e.req}</div>
+          ${i>=2?`<button style="margin-top:12px;width:100%;background:var(--gc);border:1.5px solid var(--gm);color:var(--negro);padding:8px;border-radius:7px;font-size:12px;cursor:pointer;font-family:var(--FC)" onclick="estado.escala=${e.n};irA('sel-asc')">Practicar para escala ${e.n}</button>`:''}
+        </div>`).join('')}
+    </div>`;
+}
+
+function renderMateriales() {
+  document.getElementById('contenido').innerHTML = `
+    <div class="sec-tag">📂 MATERIALES OFICIALES</div>
+    <div class="sec-titulo">Recursos alineados al MINEDU</div>
+    <div class="sec-sub">PDFs, videos y PPTs organizados por especialidad y concurso</div>
+    <div class="grupos-tabs">
+      <button class="gtab sel">Todos</button>
+      <button class="gtab">Nombramiento</button>
+      <button class="gtab">Ascenso</button>
+      <button class="gtab">CNEB y Currículo</button>
+      <button class="gtab">Marco BDD</button>
+      <button class="gtab">Ley 29944</button>
+    </div>
+    <div class="mat-grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">
+      ${[
+        {ico:'📄',nombre:'Bases Nombramiento 2025-2026',tipo:'PDF oficial · MINEDU'},
+        {ico:'📄',nombre:'Currículo Nacional (CNEB) 2023',tipo:'PDF · 250 páginas'},
+        {ico:'📄',nombre:'Marco del Buen Desempeño Docente',tipo:'PDF oficial · MINEDU'},
+        {ico:'📄',nombre:'Ley de Reforma Magisterial 29944',tipo:'PDF · Texto actualizado'},
+        {ico:'📄',nombre:'Reglamento Ley 29944',tipo:'PDF · DS 004-2013-ED'},
+        {ico:'🎥',nombre:'Clase: Estructura del examen MINEDU',tipo:'Video · 45 min'},
+        {ico:'🎥',nombre:'Clase: Marco BDD a fondo',tipo:'Video · 60 min'},
+        {ico:'🎥',nombre:'Clase: CNEB competencias y enfoques',tipo:'Video · 50 min'},
+        {ico:'📊',nombre:'Resumen CNEB Matemática',tipo:'PPT · 35 slides'},
+        {ico:'📊',nombre:'Resumen Marco BDD 4 Dominios',tipo:'PPT · 28 slides'},
+        {ico:'📄',nombre:'Guía de Habilidades Generales',tipo:'PDF · 80 páginas'},
+        {ico:'📄',nombre:'Banco de preguntas resueltas 2022',tipo:'PDF · 120 preguntas'},
+      ].map(m=>`
+        <div class="mat-item" onclick="toast('Descargando: ${m.nombre}')">
+          <div class="mat-ico">${m.ico}</div>
+          <div><div class="mat-nombre">${m.nombre}</div><div class="mat-tipo">${m.tipo}</div></div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function renderAlertas() {
+  document.getElementById('contenido').innerHTML = `
+    <div class="sec-tag">🔔 ALERTAS Y FECHAS CLAVE</div>
+    <div class="sec-titulo">Calendario MINEDU 2025-2026</div>
+    <div class="sec-sub">Convocatorias, cronogramas y novedades oficiales</div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-titulo">🚀 Concurso de Ascenso 2026</div>
+      <div class="card-sub">En curso — Vigencia desde el 1 de marzo de 2026</div>
+      ${[
+        {tipo:'al-verde',ico:'✅',titulo:'Inscripciones',desc:'Periodo de inscripción ya cerrado para el ascenso 2026.'},
+        {tipo:'al-urgente',ico:'⚠️',titulo:'Prueba Nacional',desc:'Fecha por confirmar. Revisa el portal evaluaciondocente.perueduca.pe para actualizaciones.'},
+        {tipo:'al-info',ico:'📋',titulo:'Fase Descentralizada',desc:'Dic. 2025 – Feb. 2026 según cronograma actualizado.'},
+        {tipo:'al-verde',ico:'🏆',titulo:'Publicación de ganadores',desc:'5 de febrero de 2026 — Lista de ganadores disponible.'},
+      ].map(a=>`<div class="alerta ${a.tipo}"><div>${a.ico}</div><div><div class="al-titulo">${a.titulo}</div><div class="al-desc">${a.desc}</div></div></div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="card-titulo">📝 Nombramiento / Contrato 2025-2026</div>
+      <div class="card-sub">Próxima convocatoria</div>
+      ${[
+        {tipo:'al-urgente',ico:'⚠️',titulo:'Nueva convocatoria',desc:'El MINEDU anunciará el cronograma del próximo concurso. Mantente atento al portal oficial.'},
+        {tipo:'al-info',ico:'📋',titulo:'Bases oficiales',desc:'Descarga las bases de la norma técnica desde minedu.gob.pe o evaluaciondocente.perueduca.pe.'},
+        {tipo:'al-verde',ico:'💡',titulo:'Consejo',desc:'Empieza a prepararte ahora. El examen tiene 75 preguntas en 3h 45min con puntaje sobre 200.'},
+      ].map(a=>`<div class="alerta ${a.tipo}"><div>${a.ico}</div><div><div class="al-titulo">${a.titulo}</div><div class="al-desc">${a.desc}</div></div></div>`).join('')}
+    </div>`;
+}
+
+function renderRanking() {
+  document.getElementById('contenido').innerHTML = `
+    <div class="sec-tag">🏆 RANKING</div>
+    <div class="sec-titulo">Clasificación por especialidad</div>
+    <div class="sec-sub">Basado en el mejor puntaje obtenido en simulacros completos</div>
+    <div class="grupos-tabs">
+      <button class="gtab sel">Matemática EBR Sec.</button>
+      <button class="gtab">Comunicación EBR Sec.</button>
+      <button class="gtab">Ciencia y Tecnología</button>
+      <button class="gtab">Ascenso</button>
+    </div>
+    <div class="card">
+      <div class="card-titulo">Top 10 — Matemática EBR Secundaria</div>
+      <div class="card-sub">Mejor puntaje sobre 200 · este mes</div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr>${['#','Docente','Región','Mejor puntaje','HG','Especialidad'].map(h=>`<th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--gris);letter-spacing:.4px;background:var(--gc);border-bottom:1px solid var(--gm)">${h}</th>`).join('')}</tr></thead>
+        <tbody>
+          ${[
+            {pos:1,nombre:'Carlos M.',region:'Cusco',total:186,hg:48,esp:138,yo:false},
+            {pos:2,nombre:'Lucia P.',region:'Lima',total:178,hg:46,esp:132,yo:false},
+            {pos:3,nombre:'Roberto S.',region:'Arequipa',total:175,hg:44,esp:131,yo:false},
+            {pos:4,nombre:'Ana T.',region:'Puno',total:170,hg:42,esp:128,yo:false},
+            {pos:5,nombre:'Jorge C.',region:'La Libertad',total:168,hg:40,esp:128,yo:false},
+            {pos:6,nombre:'Patricia H.',region:'Junín',total:165,hg:40,esp:125,yo:false},
+            {pos:47,nombre:'María R. (tú)',region:'Lima',total:162,hg:40,esp:122,yo:true},
+          ].map(r=>`
+            <tr style="border-bottom:1px solid var(--gc);background:${r.yo?'var(--rojo-c)':''}">
+              <td style="padding:12px 14px;font-family:var(--FT);font-size:18px;font-weight:800;color:${r.pos<=3?'var(--dorado)':r.yo?'var(--rojo)':'var(--negro)'}">${r.pos<=3?['🥇','🥈','🥉'][r.pos-1]:r.pos}</td>
+              <td style="padding:12px 14px;font-size:13px;font-weight:${r.yo?'600':'400'};color:${r.yo?'var(--rojo)':'var(--negro)'}">${r.nombre}</td>
+              <td style="padding:12px 14px;font-size:12px;color:var(--gris)">${r.region}</td>
+              <td style="padding:12px 14px;font-family:var(--FT);font-size:18px;font-weight:700;color:var(--verde)">${r.total}</td>
+              <td style="padding:12px 14px;font-size:12px;color:var(--azul)">${r.hg}</td>
+              <td style="padding:12px 14px;font-size:12px;color:var(--rojo)">${r.esp}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+// ============================================================
+// UTILIDADES
+// ============================================================
+function toast(msg, color='#1A7A4A') {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.className = 'toast';
+  Object.assign(t.style,{background:color,color:'#fff'});
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),3000);
+}
+
+// Init
+document.addEventListener('DOMContentLoaded',()=>{ mostrarPantalla('login'); });
+</script>
+</body>
+</html>
