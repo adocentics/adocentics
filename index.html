@@ -167,6 +167,10 @@ footer p{color:#3D5166;font-size:12px;font-weight:300}
 .sb-logo-txt span{color:var(--celeste)}
 .sb-logo-tag{font-size:9px;color:#2D3F52;font-weight:400;letter-spacing:.6px}
 .sb-user{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px}
+#app{display:flex;flex-direction:row;min-height:100vh;width:100%}
+.main-content{flex:1;display:flex;flex-direction:column;overflow-x:hidden;min-width:0}
+.top-bar{display:flex;align-items:center;padding:0 24px;height:54px;background:#fff;border-bottom:1px solid var(--gm);position:sticky;top:0;z-index:100;gap:12px;flex-shrink:0}
+#contenido{flex:1;padding:20px 24px;overflow-y:auto;background:var(--gc)}
 .av{width:34px;height:34px;border-radius:50%;background:var(--azul);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--blanco);flex-shrink:0}
 .sb-nombre{font-size:13px;color:var(--blanco);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sb-esp{font-size:10px;color:#2D3F52;font-weight:300}
@@ -1116,10 +1120,10 @@ function renderDashboard(){
     </div>
     <div id="admin-tab-content">
     <div class="stats-row">
-      <div class="stat-c"><div class="stat-label">SIMULACROS REALIZADOS</div><div class="stat-val sv">23</div><div class="stat-sub">este mes</div></div>
-      <div class="stat-c"><div class="stat-label">MEJOR PUNTAJE</div><div class="stat-val">162</div><div class="stat-sub">/ 200 pts</div></div>
-      <div class="stat-c"><div class="stat-label">PROMEDIO GENERAL</div><div class="stat-val sd">138</div><div class="stat-sub">/ 200 pts · ↑ mejorando</div></div>
-      <div class="stat-c"><div class="stat-label">RANKING</div><div class="stat-val sr">#47</div><div class="stat-sub">de 312 en Matemática</div></div>
+      <div class="stat-c"><div class="stat-label">SIMULACROS REALIZADOS</div><div class="stat-val sv" id="dash-sims">...</div><div class="stat-sub">este mes</div></div>
+      <div class="stat-c"><div class="stat-label">MEJOR PUNTAJE</div><div class="stat-val" id="dash-mejor">...</div><div class="stat-sub">/ 200 pts</div></div>
+      <div class="stat-c"><div class="stat-label">PROMEDIO GENERAL</div><div class="stat-val sd" id="dash-prom">...</div><div class="stat-sub">/ 200 pts</div></div>
+      <div class="stat-c"><div class="stat-label">SIMULACROS RESTANTES</div><div class="stat-val" id="dash-rest">...</div><div class="stat-sub">este mes</div></div>
     </div>
     <div class="dos-col">
       <div class="card"><div class="card-titulo">Últimos simulacros</div><div class="card-sub">Historial reciente con puntaje real MINEDU</div>
@@ -1139,6 +1143,28 @@ function renderDashboard(){
         </div>
       </div>
     </div>`;
+  _cargarStatsDashboard();
+}
+
+async function _cargarStatsDashboard(){
+  const d = getDocenteSesion();
+  if(!d||!d.id) return;
+  try {
+    const hoy = new Date();
+    const ini = new Date(hoy.getFullYear(),hoy.getMonth(),1).toISOString();
+    const res = await fetch(SUPABASE_URL+'/rest/v1/simulacros_historial?docente_id=eq.'+d.id+'&creado_en=gte.'+ini+'&select=puntaje,maximo',{
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
+    });
+    const data = await res.json();
+    const total = data.length;
+    const mejor = total>0?Math.max(...data.map(h=>h.puntaje)):0;
+    const prom  = total>0?Math.round(data.reduce((a,h)=>a+h.puntaje,0)/total):0;
+    const rest  = Math.max(0,(d.simulacros_disponibles??2)-(d.simulacros_usados??0));
+    if(document.getElementById('dash-sims'))  document.getElementById('dash-sims').textContent=total||'0';
+    if(document.getElementById('dash-mejor')) document.getElementById('dash-mejor').textContent=mejor||'—';
+    if(document.getElementById('dash-prom'))  document.getElementById('dash-prom').textContent=prom||'—';
+    if(document.getElementById('dash-rest'))  document.getElementById('dash-rest').textContent=rest;
+  } catch(e){ console.warn('Stats dash:',e); }
 }
 
 function renderSelector(tipo){
