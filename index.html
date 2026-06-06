@@ -2612,10 +2612,7 @@ async function renderRanking(){
   } catch(e){ if(document.getElementById('ranking-lista')) document.getElementById('ranking-lista').innerHTML='Error cargando ranking.'; console.error(e); }
 }
 
-</script>
 
-<div class="sb-overlay" id="sb-overlay" onclick="cerrarSidebar()"></div>
-<script>
 // Sidebar toggle móvil
 document.addEventListener('click', function(e){
   const topBar = e.target.closest('.top-bar');
@@ -2630,14 +2627,14 @@ function cerrarSidebar(){
   document.getElementById('sb-overlay')?.classList.remove('visible');
 }
 // Cerrar sidebar al navegar en móvil
-const _origIrA2 = window.irA;
-if(typeof _origIrA2==='function'){
-  window.irA = function(sec){
-    cerrarSidebar();
-    _origIrA2.apply(this,arguments);
-  };
-}
-console.log('[DocentTics Paso 5 - Responsive] ✅');
+(function(){
+  const _orig = window.irA;
+  if(typeof _orig==='function'){
+    window.irA = function(sec){ cerrarSidebar(); _orig.apply(this,arguments); };
+  }
+})();
+console.log('[DocentTics] ✅ Plataforma lista');
 </script>
+<div class="sb-overlay" id="sb-overlay" onclick="cerrarSidebar()"></div>
 </body>
 </html>
