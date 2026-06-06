@@ -1454,7 +1454,7 @@ function renderAdmin(){
   document.getElementById('top-titulo').textContent = '👑 Panel Administrador';
   window._adminTab = window._adminTab || 'docentes';
   document.getElementById('contenido').innerHTML = `
-    <div class="stats-row">
+    <div class="stats-row" id="admin-stats-row">
       <div class="stat-c"><div class="stat-label">DOCENTES ACTIVOS</div><div class="stat-val sv" id="admin-activos">...</div><div class="stat-sub">cargando...</div></div>
       <div class="stat-c"><div class="stat-label">TOTAL REGISTRADOS</div><div class="stat-val" id="admin-total">...</div><div class="stat-sub">en la plataforma</div></div>
       <div class="stat-c"><div class="stat-label">PLANES ACTIVOS</div><div class="stat-val sa" id="admin-planes">...</div><div class="stat-sub">este mes</div></div>
@@ -1462,35 +1462,12 @@ function renderAdmin(){
       <div class="stat-c"><div class="stat-label">PREGUNTAS EN BD</div><div class="stat-val" id="admin-pregs">...</div><div class="stat-sub">banco activo</div></div>
       <div class="stat-c"><div class="stat-label">SIMULACROS HOY</div><div class="stat-val sv" id="admin-sims">...</div><div class="stat-sub">últimas 24h</div></div>
     </div>
-    <div class="card" style="margin-bottom:16px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <div><div class="card-titulo">Gestión de Docentes</div><div class="card-sub">Crear, activar y administrar cuentas</div></div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <input id="admin-buscar" type="text" placeholder="🔍 Buscar por nombre o correo..." oninput="filtrarTablaAdmin()" style="border:1.5px solid var(--gm);border-radius:7px;padding:8px 14px;font-size:13px;font-family:var(--FC);outline:none;min-width:240px">
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button onclick="resetearSimulacrosMes()" style="background:var(--dorado-c,#FEF3CD);color:var(--dorado);border:1.5px solid var(--dorado);padding:9px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--FC);white-space:nowrap">🔄 Resetear simulacros del mes</button>
-          <button onclick="mostrarFormNuevo()" style="background:var(--azul);color:#fff;border:none;padding:9px 18px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC);white-space:nowrap">+ Nuevo docente</button>
-        </div>
-        </div>
-      </div>
-      <div id="form-nuevo-docente" style="display:none;background:var(--gc);border-radius:12px;padding:20px;margin-bottom:20px">
-        <div style="font-family:var(--FT);font-size:15px;font-weight:600;margin-bottom:16px">Crear nuevo usuario</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">NOMBRE COMPLETO</label><input id="new-nombre" type="text" placeholder="Nombre completo" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none"></div>
-          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">CORREO</label><input id="new-correo" type="email" placeholder="correo@ejemplo.com" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none"></div>
-          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">CONTRASEÑA</label><input id="new-pass" type="text" placeholder="Contraseña inicial" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none"></div>
-          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">MODALIDAD</label><select id="new-modalidad" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none"><option>EBR</option><option>EBA</option><option>EBE</option></select></div>
-          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">ESPECIALIDAD</label><select id="new-esp" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none"><option>Matemática</option><option>Comunicación</option><option>Ciencia y Tecnología</option><option>Ciencias Sociales</option><option>Inglés</option><option>Arte y Cultura</option><option>Educación Física</option><option>Educación Religiosa</option><option>Educación para el Trabajo</option><option>Innovación Pedagógica</option><option>Primaria</option><option>Inicial</option><option>Educación Especial</option></select></div>
-          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">PLAN</label><select id="new-plan" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none"><option>Basico</option><option>Completo</option><option>Premium</option></select></div>
-          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">VENCE</label><input id="new-vence" type="date" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none"></div>
-        </div>
-        <div style="display:flex;gap:10px">
-          <button onclick="crearDocente()" style="background:var(--azul);color:#fff;border:none;padding:10px 24px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC)">Crear usuario</button>
-          <button onclick="document.getElementById('form-nuevo-docente').style.display='none'" style="background:var(--gc);color:var(--negro);border:1.5px solid var(--gm);padding:10px 24px;border-radius:7px;font-size:13px;cursor:pointer;font-family:var(--FC)">Cancelar</button>
-        </div>
-      </div>
-      <div id="tabla-docentes">Cargando docentes...</div>
-    </div></div>`;
+    <div style="display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid var(--gm)">
+      <button onclick="switchAdminTab('docentes')" id="tab-btn-docentes" style="padding:10px 20px;border:none;background:none;font-family:var(--FC);font-size:13px;font-weight:600;cursor:pointer;border-bottom:3px solid var(--azul);color:var(--azul);margin-bottom:-2px">👥 Docentes</button>
+      <button onclick="switchAdminTab('preguntas')" id="tab-btn-preguntas" style="padding:10px 20px;border:none;background:none;font-family:var(--FC);font-size:13px;font-weight:500;cursor:pointer;border-bottom:3px solid transparent;color:var(--gris);margin-bottom:-2px">📝 Preguntas</button>
+      <button onclick="switchAdminTab('contenido')" id="tab-btn-contenido" style="padding:10px 20px;border:none;background:none;font-family:var(--FC);font-size:13px;font-weight:500;cursor:pointer;border-bottom:3px solid transparent;color:var(--gris);margin-bottom:-2px">📂 Contenido</button>
+    </div>
+    <div id="admin-tab-content"></div>`;
   switchAdminTab(window._adminTab||'docentes');
 }
 
@@ -1622,13 +1599,13 @@ async function cambiarVence(id, fecha){
 }
 
 async function crearDocente(){
-  const nombre = document.getElementById('new-nombre').value.trim();
-  const correo = document.getElementById('new-correo').value.trim();
-  const pass = document.getElementById('new-pass').value.trim();
-  const modalidad = document.getElementById('new-modalidad').value;
-  const especialidad = document.getElementById('new-esp').value;
-  const plan = document.getElementById('new-plan').value;
-  const vence = document.getElementById('new-vence').value;
+  const nombre = (document.getElementById('nd-nombre')||document.getElementById('new-nombre'))?.value.trim()||'';
+  const correo = (document.getElementById('nd-correo')||document.getElementById('new-correo'))?.value.trim()||'';
+  const pass   = (document.getElementById('nd-pass')||document.getElementById('new-pass'))?.value.trim()||'';
+  const modalidad = (document.getElementById('nd-modalidad')||document.getElementById('new-modalidad'))?.value||'EBR';
+  const especialidad = (document.getElementById('nd-especialidad')||document.getElementById('new-esp'))?.value||'';
+  const plan  = (document.getElementById('nd-plan')||document.getElementById('new-plan'))?.value||'Basico';
+  const vence = (document.getElementById('nd-vence')||document.getElementById('new-vence'))?.value||'';
   if(!nombre||!correo||!pass){ toast('Completa todos los campos','#C0392B'); return; }
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)){ toast('El correo no tiene formato válido','#C0392B'); return; }
   if(pass.length < 6){ toast('La contraseña debe tener al menos 6 caracteres','#C0392B'); return; }
@@ -1639,7 +1616,11 @@ async function crearDocente(){
       body: JSON.stringify({ nombre, correo, password_hash: pass, modalidad, especialidad, plan, activo: true, fecha_vence: vence||null, rol: 'docente' })
     });
     if(res.ok){ toast('✅ Docente creado correctamente','#1A7A4A'); document.getElementById('form-nuevo-docente').style.display='none'; cargarDocentes(); }
-    else { const err=await res.json(); toast('Error: '+(err.message||'no se pudo crear'),'#C0392B'); }
+    else {
+      const err=await res.json();
+      const isDup=(err.message||'').includes('duplicate')||(err.message||'').includes('unique')||(err.code||'')==='23505';
+      toast(isDup?'⚠️ Ya existe un docente con ese correo. Usa otro correo.':'Error: '+(err.message||'no se pudo crear'),'#C0392B');
+    }
   } catch(e){ toast('Error de conexión','#C0392B'); }
 }
 
@@ -1685,14 +1666,45 @@ function switchAdminTab(tab){
   window._adminTab = tab;
   const content = document.getElementById('admin-tab-content');
   if(!content) return;
-  // Update tab styles
   ['docentes','preguntas','contenido'].forEach(t=>{
     const btn = document.getElementById('tab-btn-'+t);
     if(!btn) return;
     if(t===tab){ btn.style.borderBottomColor='var(--azul)';btn.style.color='var(--azul)';btn.style.fontWeight='600'; }
     else { btn.style.borderBottomColor='transparent';btn.style.color='var(--gris)';btn.style.fontWeight='500'; }
   });
-  if(tab==='docentes') cargarDocentes();
+  if(tab==='docentes'){
+    content.innerHTML = `
+      <div class="card" style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+          <div><div class="card-titulo">Gestión de Docentes</div><div class="card-sub">Crear, activar y administrar cuentas</div></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input id="admin-buscar" type="text" placeholder="🔍 Buscar por nombre o correo..." oninput="filtrarTablaAdmin()" style="border:1.5px solid var(--gm);border-radius:7px;padding:8px 14px;font-size:13px;font-family:var(--FC);outline:none;min-width:220px">
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button onclick="resetearSimulacrosMes()" style="background:#FEF3CD;color:#B7860B;border:1.5px solid #F0C040;padding:9px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--FC);white-space:nowrap">🔄 Resetear simulacros</button>
+              <button onclick="mostrarFormNuevo()" style="background:var(--azul);color:#fff;border:none;padding:9px 18px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC);white-space:nowrap">+ Nuevo docente</button>
+            </div>
+          </div>
+        </div>
+        <div id="form-nuevo-docente" style="display:none;background:var(--gc);border-radius:12px;padding:20px;margin-bottom:20px">
+          <div style="font-family:var(--FT);font-size:15px;font-weight:600;margin-bottom:16px">Crear nuevo usuario</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">NOMBRE COMPLETO</label><input id="nd-nombre" type="text" placeholder="Nombre completo" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none;box-sizing:border-box"></div>
+            <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">CORREO</label><input id="nd-correo" type="email" placeholder="correo@ejemplo.com" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none;box-sizing:border-box"></div>
+            <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">CONTRASEÑA</label><input id="nd-pass" type="text" placeholder="Contraseña" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none;box-sizing:border-box"></div>
+            <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">MODALIDAD</label><select id="nd-modalidad" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"><option>EBR</option><option>EBA</option><option>EBE</option></select></div>
+            <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">ESPECIALIDAD</label><select id="nd-especialidad" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"><option>Matemática</option><option>Comunicación</option><option>Historia</option><option>Ciencias</option><option>Inglés</option><option>Educación Física</option><option>Arte</option><option>Religión</option><option>CTA</option><option>FCC</option><option>EPT</option><option>Inicial</option><option>Primaria</option><option>Otro</option></select></div>
+            <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">PLAN</label><select id="nd-plan" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"><option>Basico</option><option>Completo</option><option>Premium</option></select></div>
+            <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">VENCE</label><input id="nd-vence" type="date" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none;box-sizing:border-box"></div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button onclick="crearDocente()" style="background:var(--azul);color:#fff;border:none;padding:10px 24px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC)">Crear usuario</button>
+            <button onclick="document.getElementById('form-nuevo-docente').style.display='none'" style="background:var(--gc);color:var(--negro);border:1.5px solid var(--gm);padding:10px 24px;border-radius:7px;font-size:13px;cursor:pointer;font-family:var(--FC)">Cancelar</button>
+          </div>
+        </div>
+        <div id="tabla-docentes">Cargando docentes...</div>
+      </div>`;
+    cargarDocentes();
+  }
   else if(tab==='preguntas') renderAdminPreguntas();
   else if(tab==='contenido') renderAdminContenido();
 }
