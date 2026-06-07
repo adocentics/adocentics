@@ -2282,11 +2282,15 @@ async function importarExcelPreguntas(input){
     const ws  = wb.Sheets[wb.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
 
-    // Skip header row (row 0) and example row if it matches example text
-    const dataRows = rows.slice(1).filter(r=>
-      r[0] && r[2] && r[3] && r[4] && r[5] && r[6] && r[7] &&
-      String(r[2]).toLowerCase().indexOf('memorizar información') === -1
-    );
+    // Detectar si es plantilla nueva (col 0 = grupo_id numérico) o antigua (col 0 = tipo texto)
+    // Nueva plantilla: grupo_id | concurso | subprueba | texto | opA | opB | opC | opD | correcta | pts | explicacion
+    // Plantilla antigua: tipo | subprueba | texto | opA | opB | opC | opD | respuesta | explicacion
+    const primeraFila = rows[1] || [];
+    const esNuevaPlantilla = !isNaN(parseInt(primeraFila[0]));
+
+    // Saltar filas de encabezado (nuevas: 4 filas, antigua: 1)
+    const inicioData = esNuevaPlantilla ? 4 : 1;
+    const dataRows = rows.slice(inicioData).filter(r=> r.some(c=>c!==''));
 
     if(dataRows.length === 0){
       toast('⚠️ No se encontraron preguntas válidas en el archivo','#E67E22');
@@ -2301,8 +2305,7 @@ async function importarExcelPreguntas(input){
       'hg': 'hg',
       'esp': 'esp'
     };
-    const mapaRespuesta = {'a':0,'b':1,'c':2,'d':3};
-    const letras = ['a','b','c','d'];
+    const mapaRespuesta = {'a':0,'b':1,'c':2,'d':3,'0':0,'1':1,'2':2,'3':3};
 
     let ok=0, errores=[];
     const BATCH = 20;
@@ -2312,23 +2315,41 @@ async function importarExcelPreguntas(input){
       const payload = [];
 
       lote.forEach((r, idx)=>{
-        const fila = i+idx+2; // fila real en Excel (1-indexed + header)
-        const concurso   = String(r[0]||'').trim().toLowerCase();
-        const subRaw     = String(r[1]||'').trim().toLowerCase();
-        const texto      = String(r[2]||'').trim();
-        const opA        = String(r[3]||'').trim();
-        const opB        = String(r[4]||'').trim();
-        const opC        = String(r[5]||'').trim();
-        const opD        = String(r[6]||'').trim();
-        const respRaw    = String(r[7]||'').trim().toLowerCase();
-        const explicacion= String(r[8]||'').trim();
+        const fila = inicioData+i+idx+1;
+        let grupo_id, concurso, subRaw, texto, opA, opB, opC, opD, respRaw, explicacion;
+
+        if(esNuevaPlantilla){
+          // Nueva: grupo_id | concurso | subprueba | texto | opA | opB | opC | opD | correcta | pts | explicacion
+          grupo_id   = parseInt(r[0])||null;
+          concurso   = String(r[1]||'').trim().toLowerCase();
+          subRaw     = String(r[2]||'').trim().toLowerCase();
+          texto      = String(r[3]||'').trim();
+          opA        = String(r[4]||'').trim();
+          opB        = String(r[5]||'').trim();
+          opC        = String(r[6]||'').trim();
+          opD        = String(r[7]||'').trim();
+          respRaw    = String(r[8]||'').trim().toLowerCase();
+          explicacion= String(r[10]||'').trim();
+        } else {
+          // Antigua: tipo | subprueba | texto | opA | opB | opC | opD | respuesta | explicacion
+          grupo_id   = null;
+          concurso   = String(r[0]||'').trim().toLowerCase();
+          subRaw     = String(r[1]||'').trim().toLowerCase();
+          texto      = String(r[2]||'').trim();
+          opA        = String(r[3]||'').trim();
+          opB        = String(r[4]||'').trim();
+          opC        = String(r[5]||'').trim();
+          opD        = String(r[6]||'').trim();
+          respRaw    = String(r[7]||'').trim().toLowerCase();
+          explicacion= String(r[8]||'').trim();
+        }
 
         if(!texto||!opA||!opB||!opC||!opD){
           errores.push('Fila '+fila+': faltan datos');
           return;
         }
         if(!['nombramiento','ascenso'].includes(concurso)){
-          errores.push('Fila '+fila+': tipo inválido "'+concurso+'"');
+          errores.push('Fila '+fila+': concurso inválido "'+concurso+'"');
           return;
         }
         const subprueba = mapaSubprueba[subRaw];
@@ -2338,7 +2359,7 @@ async function importarExcelPreguntas(input){
         }
         const correcta = mapaRespuesta[respRaw];
         if(correcta === undefined){
-          errores.push('Fila '+fila+': respuesta inválida "'+respRaw+'" (usa A/B/C/D)');
+          errores.push('Fila '+fila+': respuesta inválida "'+respRaw+'" (usa 0/1/2/3 o A/B/C/D)');
           return;
         }
 
@@ -2348,7 +2369,7 @@ async function importarExcelPreguntas(input){
           correcta,
           concurso,
           subprueba,
-          grupo_id: null,
+          grupo_id,
           pts: subprueba==='hg' ? 2 : 3,
           explicacion: explicacion||null,
           activa: true
