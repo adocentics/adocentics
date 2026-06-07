@@ -1203,7 +1203,7 @@ async function _cargarUltimosSims(docenteId){
     const el = document.getElementById('dash-ultimos-sims');
     if(!el) return;
     if(!data||data.length===0){
-      el.innerHTML='<div style="text-align:center;padding:24px;color:var(--gris);font-size:13px">Aún no has realizado simulacros.<br><span style="color:var(--azul);cursor:pointer" onclick="irA('sel-nom')">¡Empieza tu primer simulacro! →</span></div>';
+      el.innerHTML='<div style="text-align:center;padding:24px;color:var(--gris);font-size:13px">Aún no has realizado simulacros.<br><span style="color:var(--azul);cursor:pointer" onclick="irA(\'sel-nom\')">¡Empieza tu primer simulacro! →</span></div>';
       return;
     }
     el.innerHTML = data.map(h=>{
