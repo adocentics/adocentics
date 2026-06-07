@@ -1352,8 +1352,14 @@ function renderGrupos(){
 
   // Auto-seleccionar si solo hay un grupo
   if(grupos.length===1){
+    // Ocultar tabs de modalidad si solo hay un grupo disponible
+    const tabs = document.getElementById('mod-tabs');
+    if(tabs) tabs.style.display='none';
     const card = document.getElementById('gc-'+grupos[0].id);
     if(card) selGrupo(grupos[0].id, card);
+  } else {
+    const tabs = document.getElementById('mod-tabs');
+    if(tabs) tabs.style.display='';
   }
 }
 
@@ -1379,7 +1385,7 @@ function selGrupo(id,el){
 /* ── Carga preguntas desde Supabase ── */
 async function cargarPreguntasDB(concurso, grupoId, modo){
   try {
-    let url = SUPABASE_URL + '/rest/v1/preguntas?activa=eq.true&order=random()';
+    let url = SUPABASE_URL + '/rest/v1/preguntas?activa=eq.true&limit=1000';
     if(concurso==='asc'){
       url += '&concurso=eq.ascenso';
       // Si el docente tiene especialidad, filtrar también por grupo
@@ -1405,6 +1411,8 @@ async function cargarPreguntasDB(concurso, grupoId, modo){
     if(!res.ok) return null;
     const data = await res.json();
     if(!data||data.length===0) return null;
+    // Mezclar aleatoriamente en cliente (Fisher-Yates)
+    for(let i=data.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[data[i],data[j]]=[data[j],data[i]];}
     // Normalizar formato
     return data.map(p=>({
       texto: p.texto,
@@ -1420,8 +1428,9 @@ async function cargarPreguntasDB(concurso, grupoId, modo){
 async function iniciarSimulacro(){
   if(!grupoSel&&estado.concurso==='nom'){toast('Selecciona tu grupo de inscripción primero','#C0392B');return;}
   const docente = getDocenteSesion();
-  // Verificar límite en servidor
-  if(docente && docente.id){
+  const modo = document.getElementById('modo-sim')?.value||'completo';
+  // Verificar límite en servidor solo para modo completo
+  if(docente && docente.id && modo==='completo'){
     try {
       const resLim = await fetch(SUPABASE_URL+'/functions/v1/verificar-limite', {
         method:'POST',
@@ -1442,7 +1451,6 @@ async function iniciarSimulacro(){
       }
     }
   }
-  const modo = document.getElementById('modo-sim')?.value||'completo';
   const btnInic = document.querySelector('.btn-iniciar');
   if(btnInic){btnInic.textContent='Cargando preguntas...';btnInic.disabled=true;}
   try {
