@@ -2941,7 +2941,7 @@ async function renderRanking(){
 // Sidebar toggle móvil
 document.addEventListener('click', function(e){
   const topBar = e.target.closest('.top-bar');
-  if(topBar && e.target === topBar){
+  if(topBar){
     const sb = document.querySelector('.sidebar');
     const overlay = document.getElementById('sb-overlay');
     if(sb){ sb.classList.toggle('sb-open'); overlay.classList.toggle('visible'); }
@@ -2952,12 +2952,10 @@ function cerrarSidebar(){
   document.getElementById('sb-overlay')?.classList.remove('visible');
 }
 // Cerrar sidebar al navegar en móvil
-(function(){
-  const _orig = window.irA;
-  if(typeof _orig==='function'){
-    window.irA = function(sec){ cerrarSidebar(); _orig.apply(this,arguments); };
-  }
-})();
+document.addEventListener('click', function(e){
+  const navBtn = e.target.closest('[onclick*="irA"]');
+  if(navBtn) cerrarSidebar();
+});
 console.log('[DocentTics] ✅ Plataforma lista');
 </script>
 <div class="sb-overlay" id="sb-overlay" onclick="cerrarSidebar()"></div>
