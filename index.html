@@ -1144,51 +1144,30 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function renderDashboard(){
-  document.getElementById('contenido').innerHTML=`
-    <div class="selector-concurso">
-      <div class="card-concurso cc-nom" onclick="irA('sel-nom')">
-        <div class="cc-ico">📝</div><div class="cc-titulo">Nombramiento Docente</div>
-        <div class="cc-desc">Simulacro oficial: 75 preguntas · 3h 45min · Puntaje sobre 200. Dos subpruebas según la estructura real del MINEDU.</div>
-        <span class="cc-tag tag-nom">Subprueba HG (25×2pts) + Especialidad (50×3pts)</span>
-        <div class="cc-escala"><div class="escala-item">✓ 26 grupos oficiales EBR / EBA / EBE</div><div class="escala-item">✓ Mínimo aprobatorio: 110 / 200 pts</div></div>
-      </div>
-      <div class="card-concurso cc-asc" onclick="irA('sel-asc')">
-        <div class="cc-ico">🚀</div><div class="cc-titulo">Ascenso de Escala</div>
-        <div class="cc-desc">Prepárate para subir de escala magisterial. Marco BDD, Ley 29944 y CNEB avanzado.</div>
-        <span class="cc-tag tag-asc">Escalas 1ra a 8va · Sueldos S/1,800 a S/9,801</span>
-        <div class="cc-escala"><div class="escala-item">✓ Marco del Buen Desempeño Docente</div><div class="escala-item">✓ Ley de Reforma Magisterial 29944</div></div>
-      </div>
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:20px;border-bottom:2px solid var(--gm);padding-bottom:0">
-      <button onclick="switchAdminTab('docentes')" id="tab-btn-docentes" style="padding:10px 20px;border:none;background:none;font-family:var(--FC);font-size:13px;font-weight:600;cursor:pointer;border-bottom:3px solid var(--azul);color:var(--azul);margin-bottom:-2px">👥 Docentes</button>
-      <button onclick="switchAdminTab('preguntas')" id="tab-btn-preguntas" style="padding:10px 20px;border:none;background:none;font-family:var(--FC);font-size:13px;font-weight:500;cursor:pointer;border-bottom:3px solid transparent;color:var(--gris);margin-bottom:-2px">📝 Preguntas</button>
-      <button onclick="switchAdminTab('contenido')" id="tab-btn-contenido" style="padding:10px 20px;border:none;background:none;font-family:var(--FC);font-size:13px;font-weight:500;cursor:pointer;border-bottom:3px solid transparent;color:var(--gris);margin-bottom:-2px">📂 Contenido</button>
-    </div>
-    <div id="admin-tab-content">
-    <div class="stats-row">
-      <div class="stat-c"><div class="stat-label">SIMULACROS REALIZADOS</div><div class="stat-val sv" id="dash-sims">...</div><div class="stat-sub">este mes</div></div>
-      <div class="stat-c"><div class="stat-label">MEJOR PUNTAJE</div><div class="stat-val" id="dash-mejor">...</div><div class="stat-sub">/ 200 pts</div></div>
-      <div class="stat-c"><div class="stat-label">PROMEDIO GENERAL</div><div class="stat-val sd" id="dash-prom">...</div><div class="stat-sub">/ 200 pts</div></div>
-      <div class="stat-c"><div class="stat-label">SIMULACROS RESTANTES</div><div class="stat-val" id="dash-rest">...</div><div class="stat-sub">este mes</div></div>
-    </div>
-    <div class="dos-col">
-      <div class="card"><div class="card-titulo">Últimos simulacros</div><div class="card-sub">Historial reciente con puntaje real MINEDU</div>
-        <div class="hist-item"><div class="hist-izq"><div class="hist-ico">📐</div><div><div class="hist-nombre">EBR Sec. Matemática · Completo</div><div class="hist-meta">Hoy, 9:15 am</div></div></div><div><div class="hist-ptj" style="color:var(--verde)">162</div><div style="font-size:10px;color:var(--gris)">/ 200 pts</div></div></div>
-        <div class="hist-item"><div class="hist-izq"><div class="hist-ico">📖</div><div><div class="hist-nombre">EBR Sec. Comunicación · Solo HG</div><div class="hist-meta">Ayer, 7:30 pm</div></div></div><div><div class="hist-ptj" style="color:var(--celeste)">38</div><div style="font-size:10px;color:var(--gris)">/ 50 pts</div></div></div>
-        <div class="hist-item"><div class="hist-izq"><div class="hist-ico">🚀</div><div><div class="hist-nombre">Ascenso · Simulacro completo</div><div class="hist-meta">Hace 2 días</div></div></div><div><div class="hist-ptj" style="color:var(--rojo)">105</div><div style="font-size:10px;color:var(--gris)">/ 200 pts</div></div></div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:14px">
-        <div class="card"><div class="card-titulo">🔔 Alertas MINEDU</div>
-          <div class="alerta al-urgente"><div>⚠️</div><div><div class="al-titulo">Ascenso 2026 en curso</div><div class="al-desc">Vigencia desde el 1 de marzo de 2026. Revisa el portal oficial.</div></div></div>
-          <div class="alerta al-info"><div>📋</div><div><div class="al-titulo">Bases Nombramiento 2025-2026</div><div class="al-desc">Descarga las bases oficiales desde minedu.gob.pe.</div></div></div>
-        </div>
-        <div class="card" style="background:var(--celeste-c);border-color:rgba(52,152,219,.3)">
-          <div style="font-size:13px;font-weight:600;color:var(--azul);margin-bottom:8px">💬 ¿Necesitas ayuda?</div>
-          <div style="font-size:12px;color:var(--gris);font-weight:300;margin-bottom:12px;line-height:1.6">Escríbenos por WhatsApp para renovar tu plan, consultas o asesoría personalizada.</div>
-          <button onclick="abrirWsp('Hola, necesito ayuda con DocentTics')" style="width:100%;background:#25D366;color:#fff;border:none;padding:9px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC)">💬 Abrir WhatsApp</button>
-        </div>
-      </div>
+  const _dDash = getDocenteSesion();
+  const _tc = _dDash?.tipo_concurso || 'nombramiento';
+  const _esAdmin = _dDash?.rol === 'admin';
+  const _cardNom = `
+    <div class="card-concurso cc-nom" onclick="irA('sel-nom')" style="cursor:pointer">
+      <div class="cc-ico">📝</div><div class="cc-titulo">Nombramiento Docente</div>
+      <div class="cc-desc">Simulacro oficial: 75 preguntas · 3h 45min · Puntaje sobre 200. Dos subpruebas según la estructura real del MINEDU.</div>
+      <span class="cc-tag tag-nom">Subprueba HG (25×2pts) + Especialidad (50×3pts)</span>
+      <div class="cc-escala"><div class="escala-item">✓ 26 grupos oficiales EBR / EBA / EBE</div><div class="escala-item">✓ Mínimo aprobatorio: 110 / 200 pts</div></div>
     </div>`;
+  const _cardAsc = `
+    <div class="card-concurso cc-asc" onclick="irA('sel-asc')" style="cursor:pointer">
+      <div class="cc-ico">🚀</div><div class="cc-titulo">Ascenso de Escala</div>
+      <div class="cc-desc">Prepárate para subir de escala magisterial. Marco BDD, Ley 29944 y CNEB avanzado.</div>
+      <span class="cc-tag tag-asc">Escalas 1ra a 8va · Sueldos S/1,800 a S/9,801</span>
+      <div class="cc-escala"><div class="escala-item">✓ Marco del Buen Desempeño Docente</div><div class="escala-item">✓ Ley de Reforma Magisterial 29944</div></div>
+    </div>`;
+  // Admin ve ambas, docente solo la de su concurso
+  const _cardsHtml = _esAdmin
+    ? _cardNom + _cardAsc
+    : _tc === 'ascenso' ? _cardAsc : _cardNom;
+  document.getElementById('contenido').innerHTML=`
+    <div class="selector-concurso" style="${_esAdmin?'':'grid-template-columns:1fr;max-width:600px;margin:0 auto'}">${_cardsHtml}</div>
+    <div id="admin-tab-content" style="display:none"></div>`;
   _cargarStatsDashboard();
 }
 
@@ -1210,14 +1189,56 @@ async function _cargarStatsDashboard(){
     if(document.getElementById('dash-mejor')) document.getElementById('dash-mejor').textContent=mejor||'—';
     if(document.getElementById('dash-prom'))  document.getElementById('dash-prom').textContent=prom||'—';
     if(document.getElementById('dash-rest'))  document.getElementById('dash-rest').textContent=rest;
+    // Cargar últimos simulacros
+    _cargarUltimosSims(d.id);
   } catch(e){ console.warn('Stats dash:',e); }
+}
+
+async function _cargarUltimosSims(docenteId){
+  try {
+    const res = await fetch(SUPABASE_URL+'/rest/v1/simulacros_historial?docente_id=eq.'+docenteId+'&order=creado_en.desc&limit=4',{
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
+    });
+    const data = await res.json();
+    const el = document.getElementById('dash-ultimos-sims');
+    if(!el) return;
+    if(!data||data.length===0){
+      el.innerHTML='<div style="text-align:center;padding:24px;color:var(--gris);font-size:13px">Aún no has realizado simulacros.<br><span style="color:var(--azul);cursor:pointer" onclick="irA('sel-nom')">¡Empieza tu primer simulacro! →</span></div>';
+      return;
+    }
+    el.innerHTML = data.map(h=>{
+      const ptColor = h.puntaje>=110?'var(--verde)':h.puntaje>=80?'var(--dorado)':'var(--rojo)';
+      const ico = h.concurso==='ascenso'?'🚀':'📐';
+      const fecha = new Date(h.creado_en).toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'});
+      return `<div class="hist-item">
+        <div class="hist-izq">
+          <div class="hist-ico">${ico}</div>
+          <div>
+            <div class="hist-nombre">${h.nombre}</div>
+            <div class="hist-meta">${fecha}</div>
+          </div>
+        </div>
+        <div>
+          <div class="hist-ptj" style="color:${ptColor}">${h.puntaje}</div>
+          <div style="font-size:10px;color:var(--gris)">/ ${h.maximo} pts</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e){ console.warn('Últimos sims:',e); }
 }
 
 function renderSelector(tipo){
   estado.concurso=tipo;filtroMod='EBR';grupoSel=null;
+  // Auto-set modalidad from docente session
+  const _docSel = getDocenteSesion();
+  if(_docSel && _docSel.modalidad && _docSel.rol !== 'admin'){
+    const _m = _docSel.modalidad.toUpperCase().trim();
+    if(['EBR','EBA','EBE'].includes(_m)) filtroMod = _m;
+  }
   const esAsc=tipo==='asc';
   document.getElementById('contenido').innerHTML=`
     <div class="sec-tag2">${esAsc?'🚀 ASCENSO DE ESCALA':'📝 NOMBRAMIENTO / CONTRATO'}</div>
+    ${_docSel && _docSel.rol!=='admin' && _docSel.especialidad ? `<div style="background:${esAsc?'#E8F5E9':'#EBF5FF'};border:1.5px solid ${esAsc?'#1FAA72':'#3498DB'};border-radius:8px;padding:10px 14px;font-size:12px;color:${esAsc?'#1A6A3A':'#1A5E8A'};margin-bottom:8px">📌 Especialidad detectada: <strong>${_docSel.modalidad||''} · ${_docSel.especialidad}</strong> — las preguntas serán de tu área.</div>` : ''}
     <div style="font-family:var(--FT);font-size:24px;font-weight:700;margin-bottom:6px">${esAsc?'Elige tu especialidad para ascenso':'Elige tu grupo de inscripción oficial MINEDU'}</div>
     <div style="font-size:14px;color:var(--gris);font-weight:300;margin-bottom:24px">${esAsc?'Contenido pedagógico avanzado, Marco BDD y Ley 29944':'26 grupos según la Norma Técnica del Concurso · EBR · EBA · EBE'}</div>
     ${esAsc?renderSelectorEscalas():''}
@@ -1236,6 +1257,13 @@ function renderSelector(tipo){
       </div>
       <button class="btn-iniciar ${esAsc?'btn-iniciar-verde':''}" onclick="iniciarSimulacro()">${esAsc?'🚀 Iniciar simulacro de ascenso →':'📝 Iniciar simulacro de nombramiento →'}</button>
     </div>`;
+  // Mostrar aviso de especialidad
+  const _d = getDocenteSesion();
+  const avisoEl = document.getElementById('selector-esp-aviso');
+  if(avisoEl && _d && _d.rol !== 'admin' && _d.especialidad){
+    avisoEl.style.display = 'block';
+    avisoEl.innerHTML = `📌 Mostrando grupos para tu especialidad: <strong>${_d.modalidad||''} · ${_d.especialidad}</strong>. Si necesitas otro grupo, contáctanos.`;
+  }
   cargarConteoPreguntas().then(()=>renderGrupos());
 }
 
@@ -1247,13 +1275,62 @@ function renderSelectorEscalas(){
 function selEscala(n,el){document.querySelectorAll('.escala-card').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');estado.escala=n;}
 function filtrarMod(mod,el){filtroMod=mod;document.querySelectorAll('.gtab').forEach(t=>t.classList.remove('sel'));el.classList.add('sel');renderGrupos();}
 function renderGrupos(){
-  const grupos=GRUPOS.filter(g=>g.mod===filtroMod);
-  const counts=window._pregCounts||{};
-  document.getElementById('grid-grupos').innerHTML=grupos.map(g=>{
-    const total=counts[g.id]||0;
-    const badge=total>0
+  const doc = getDocenteSesion();
+  const counts = window._pregCounts||{};
+
+  // Filtrar grupos según modalidad y especialidad del docente
+  let grupos = GRUPOS.filter(g=>g.mod===filtroMod);
+
+  if(doc && doc.rol !== 'admin'){
+    const mod  = (doc.modalidad||'').toUpperCase().trim();
+    const esp  = (doc.especialidad||'').toLowerCase().trim();
+
+    // Mapeo de especialidad del docente → palabras clave en el grupo
+    const mapEsp = {
+      'matemática':     ['matemática','matemática + cts','campo de ciencias'],
+      'matematica':     ['matemática','matemática + cts','campo de ciencias'],
+      'comunicación':   ['comunicación','campo de humanidades'],
+      'comunicacion':   ['comunicación','campo de humanidades'],
+      'historia':       ['ciencias sociales','humanidades'],
+      'ciencias':       ['ciencia y tecnología','ciencias sociales','cts'],
+      'inglés':         ['inglés'],
+      'ingles':         ['inglés'],
+      'arte':           ['arte'],
+      'religión':       ['educación religiosa'],
+      'religion':       ['educación religiosa'],
+      'educación física':['educación física'],
+      'educacion fisica':['educación física'],
+      'ept':            ['educación para el trabajo'],
+      'computación':    ['innovación pedagógica','computación'],
+      'computacion':    ['innovación pedagógica','computación'],
+      'primaria':       ['primaria'],
+      'inicial':        ['inicial'],
+      'especial':       ['educación especial'],
+    };
+
+    const claves = mapEsp[esp] || null;
+
+    if(claves){
+      grupos = grupos.filter(g=>{
+        const nivelArea = (g.nivel+' '+g.area).toLowerCase();
+        // Incluir si alguna clave coincide con nivel o área del grupo
+        return claves.some(k=>nivelArea.includes(k));
+      });
+    }
+    // Si no hay match o si es admin, muestra todos los de la modalidad
+    if(grupos.length === 0) grupos = GRUPOS.filter(g=>g.mod===filtroMod);
+  }
+
+  if(grupos.length === 0){
+    document.getElementById('grid-grupos').innerHTML='<div style="text-align:center;padding:30px;color:var(--gris);font-size:13px">No se encontraron grupos para tu especialidad.</div>';
+    return;
+  }
+
+  document.getElementById('grid-grupos').innerHTML = grupos.map(g=>{
+    const total = counts[g.id]||0;
+    const badge = total>0
       ?`<div style="font-size:10px;margin-top:4px;color:var(--verde);font-weight:600">${total} preguntas</div>`
-      :`<div style="font-size:10px;margin-top:4px;color:var(--gris)">sin preguntas aún</div>`;
+      :`<div style="font-size:10px;margin-top:4px;color:var(--gris)">sin preguntas</div>`;
     return `<div class="grupo-card" onclick="selGrupo(${g.id},this)" id="gc-${g.id}">
       <div class="gc-num">GRUPO ${g.id}</div>
       <div class="gc-modal">${g.mod}</div>
@@ -1263,6 +1340,12 @@ function renderGrupos(){
       ${badge}
     </div>`;
   }).join('');
+
+  // Auto-seleccionar si solo hay un grupo
+  if(grupos.length===1){
+    const card = document.getElementById('gc-'+grupos[0].id);
+    if(card) selGrupo(grupos[0].id, card);
+  }
 }
 
 async function cargarConteoPreguntas(){
@@ -1290,6 +1373,11 @@ async function cargarPreguntasDB(concurso, grupoId, modo){
     let url = SUPABASE_URL + '/rest/v1/preguntas?activa=eq.true&order=random()';
     if(concurso==='asc'){
       url += '&concurso=eq.ascenso';
+      // Si el docente tiene especialidad, filtrar también por grupo
+      const _docQ = getDocenteSesion();
+      if(_docQ && _docQ.especialidad && grupoId){
+        url += '&grupo_id=eq.'+grupoId;
+      }
     } else {
       if(modo==='hg'){
         url += '&concurso=eq.nombramiento&subprueba=eq.hg';
@@ -1332,10 +1420,23 @@ async function iniciarSimulacro(){
   const btnInic = document.querySelector('.btn-iniciar');
   if(btnInic){btnInic.textContent='Cargando preguntas...';btnInic.disabled=true;}
   try {
-    let pregsDB = await cargarPreguntasDB(estado.concurso, grupoSel, modo);
+    // Para ascenso, detectar grupo automáticamente desde especialidad del docente
+    let grupoParaCargar = grupoSel;
+    if(estado.concurso==='asc' && !grupoSel){
+      const _docA = getDocenteSesion();
+      if(_docA && _docA.especialidad){
+        const espLower = _docA.especialidad.toLowerCase();
+        const grupoMatch = GRUPOS.find(g=>{
+          const na = (g.nivel+' '+g.area).toLowerCase();
+          return na.includes(espLower) || espLower.includes(g.area.toLowerCase().replace('—','').trim());
+        });
+        if(grupoMatch) grupoParaCargar = grupoMatch.id;
+      }
+    }
+    let pregsDB = await cargarPreguntasDB(estado.concurso, grupoParaCargar, modo);
     if(!pregsDB || pregsDB.length===0){
-      // fallback al banco local si no hay preguntas en BD
-      toast('⚠️ Usando banco local (no hay preguntas en BD para este grupo)','#E67E22');
+      const grupoNombre = grupoSel ? ('Grupo '+grupoSel) : 'este concurso';
+      toast('⚠️ No hay preguntas en BD para '+grupoNombre+'. Usando banco de práctica.','#E67E22');
       pregsDB = null;
     }
     if(pregsDB){
@@ -1656,6 +1757,19 @@ async function cambiarPlan(id, plan){
   } catch(e){ toast('Error actualizando plan','#C0392B'); }
 }
 
+async function cambiarConcurso(id, tipo_concurso){
+  try {
+    await fetch(SUPABASE_URL + '/rest/v1/docentes?id=eq.'+id, {
+      method:'PATCH',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
+      body: JSON.stringify({tipo_concurso})
+    });
+    const d = (window._adminDocentes||[]).find(x=>x.id===id);
+    if(d) d.tipo_concurso = tipo_concurso;
+    toast('✅ Concurso actualizado: '+(tipo_concurso==='ascenso'?'Ascenso de Escala':'Nombramiento'),'#1A7A4A');
+  } catch(e){ toast('Error actualizando concurso','#C0392B'); }
+}
+
 async function cambiarVence(id, fecha){
   try {
     await fetch(SUPABASE_URL + '/rest/v1/docentes?id=eq.'+id, {
@@ -1685,7 +1799,13 @@ async function crearDocente(){
     const res = await fetch(SUPABASE_URL + '/rest/v1/docentes', {
       method: 'POST',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-      body: JSON.stringify({ nombre, correo, password_hash: pass, modalidad, especialidad, plan, activo: true, fecha_vence: vence||null, rol: 'docente' })
+      body: JSON.stringify({
+        nombre, correo, password_hash: pass, modalidad, especialidad, plan,
+        activo: true, fecha_vence: vence||null, rol: 'docente',
+        tipo_concurso: (document.getElementById('nd-concurso')||{value:'nombramiento'}).value||'nombramiento',
+        simulacros_disponibles: {'Basico':4,'Completo':6,'Premium':999}[plan]||4,
+        simulacros_usados: 0
+      })
     });
     if(res.ok){ toast('✅ Docente creado correctamente','#1A7A4A'); document.getElementById('form-nuevo-docente').style.display='none'; cargarDocentes(); }
     else {
@@ -1767,6 +1887,7 @@ function switchAdminTab(tab){
             <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">ESPECIALIDAD</label><select id="nd-especialidad" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"><option>Matemática</option><option>Comunicación</option><option>Historia</option><option>Ciencias</option><option>Inglés</option><option>Educación Física</option><option>Arte</option><option>Religión</option><option>CTA</option><option>FCC</option><option>EPT</option><option>Inicial</option><option>Primaria</option><option>Otro</option></select></div>
             <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">PLAN</label><select id="nd-plan" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"><option>Basico</option><option>Completo</option><option>Premium</option></select></div>
             <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">VENCE</label><input id="nd-vence" type="date" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none;box-sizing:border-box"></div>
+            <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">CONCURSO</label><select id="nd-concurso" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"><option value="nombramiento">📝 Nombramiento</option><option value="ascenso">🚀 Ascenso de Escala</option></select></div>
           </div>
           <div style="display:flex;gap:10px">
             <button onclick="crearDocente()" style="background:var(--azul);color:#fff;border:none;padding:10px 24px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC)">Crear usuario</button>
@@ -2030,6 +2151,79 @@ async function eliminarMaterial(id){
   } catch(e){ toast('Error','#C0392B'); }
 }
 
+
+/* ── Descargar plantilla Excel desde el navegador ── */
+function descargarPlantillaExcel(){
+  // Cargar SheetJS si no está disponible
+  function _generarPlantilla(){
+    const wb = XLSX.utils.book_new();
+
+    // Hoja de preguntas
+    const headers = ['Tipo','Subprueba','Pregunta','Alternativa A','Alternativa B','Alternativa C','Alternativa D','Respuesta','Explicación'];
+    const ejemplo = [
+      'nombramiento',
+      'Habilidades Generales',
+      '¿Cuál de los siguientes describe mejor el pensamiento crítico?',
+      'Memorizar información de diversas fuentes',
+      'Analizar y evaluar argumentos con evidencia',
+      'Repetir conceptos sin cuestionarlos',
+      'Aceptar toda información como verdadera',
+      'B',
+      'El pensamiento crítico implica analizar y cuestionar la información de forma reflexiva.'
+    ];
+
+    const ws = XLSX.utils.aoa_to_sheet([headers, ejemplo]);
+
+    // Anchos de columna
+    ws['!cols'] = [
+      {wch:16},{wch:28},{wch:55},{wch:28},{wch:28},{wch:28},{wch:28},{wch:12},{wch:45}
+    ];
+
+    // Hoja de instrucciones
+    const instrucciones = [
+      ['INSTRUCCIONES DE USO — DocentTics'],
+      [''],
+      ['COLUMNA', 'VALORES VÁLIDOS'],
+      ['A - Tipo', 'nombramiento   ó   ascenso   (en minúsculas)'],
+      ['B - Subprueba', 'Habilidades Generales   ó   Conocimiento Pedagógico'],
+      ['C - Pregunta', 'Texto completo de la pregunta'],
+      ['D - Alternativa A', 'Primera opción'],
+      ['E - Alternativa B', 'Segunda opción'],
+      ['F - Alternativa C', 'Tercera opción'],
+      ['G - Alternativa D', 'Cuarta opción'],
+      ['H - Respuesta', 'Solo la letra: A, B, C o D (mayúscula)'],
+      ['I - Explicación', 'Opcional — por qué esa es la correcta'],
+      [''],
+      ['CÓMO IMPORTAR'],
+      ['1. Llena las preguntas en la hoja "Preguntas"'],
+      ['2. Guarda el archivo como .xlsx'],
+      ['3. En el admin → Preguntas → botón "Importar Excel"'],
+      ['4. Selecciona el archivo y confirma'],
+      [''],
+      ['NOTAS'],
+      ['- Máximo 200 preguntas por archivo'],
+      ['- Las preguntas de Habilidades Generales no necesitan grupo'],
+      ['- Las de Conocimiento Pedagógico se asignan al grupo del docente'],
+    ];
+    const ws2 = XLSX.utils.aoa_to_sheet(instrucciones);
+    ws2['!cols'] = [{wch:30},{wch:65}];
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Preguntas');
+    XLSX.utils.book_append_sheet(wb, ws2, 'Instrucciones');
+    XLSX.writeFile(wb, 'plantilla_preguntas_docenttics.xlsx');
+    toast('✅ Plantilla descargada','#1A7A4A');
+  }
+
+  if(typeof XLSX !== 'undefined'){
+    _generarPlantilla();
+  } else {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload = _generarPlantilla;
+    s.onerror = ()=>toast('Error cargando librería Excel','#C0392B');
+    document.head.appendChild(s);
+  }
+}
 /* ── Importar preguntas desde Excel ── */
 async function importarExcelPreguntas(input){
   const file = input.files[0];
@@ -2167,7 +2361,7 @@ async function renderAdminPreguntas(){
           <button onclick="mostrarFormPregunta()" style="background:var(--azul);color:#fff;border:none;padding:9px 18px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC)">+ Nueva pregunta</button>
           <button onclick="document.getElementById('input-excel-pregs').click()" style="background:var(--vc,#E8F5E9);color:var(--verde);border:1.5px solid var(--verde);padding:9px 14px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC)">📥 Importar Excel</button>
           <input type="file" id="input-excel-pregs" accept=".xlsx,.xls" style="display:none" onchange="importarExcelPreguntas(this)">
-          <a href="plantilla_preguntas_docenttics.xlsx" download style="background:var(--gc);color:var(--gris);border:1.5px solid var(--gm);padding:9px 14px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC);text-decoration:none">⬇ Plantilla</a>
+          <button onclick="descargarPlantillaExcel()" style="background:var(--gc);color:var(--gris);border:1.5px solid var(--gm);padding:9px 14px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC)">⬇ Plantilla Excel</button>
         </div>
       </div>
       <!-- Filtros -->
