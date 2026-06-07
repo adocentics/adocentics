@@ -867,9 +867,13 @@ async function loginReal() {
     document.querySelector('.hero-card input[type=password]');
 
   const correo = correoInput?.value?.trim() || '';
-  const pass   = passInput?.value?.trim()   || '';
+  const passRaw = passInput?.value?.trim() || '';
 
-  if (!correo || !pass) { toast('Ingresa tu correo y contraseña', '#C0392B'); return; }
+  if (!correo || !passRaw) { toast('Ingresa tu correo y contraseña', '#C0392B'); return; }
+
+  // SHA-256 antes de comparar
+  const passBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(passRaw));
+  const pass = Array.from(new Uint8Array(passBuffer)).map(b=>b.toString(16).padStart(2,'0')).join('');
 
   const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!regexCorreo.test(correo)) { toast('❌ El correo no tiene un formato válido', '#C0392B'); return; }
