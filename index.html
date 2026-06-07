@@ -1419,11 +1419,28 @@ async function cargarPreguntasDB(concurso, grupoId, modo){
 
 async function iniciarSimulacro(){
   if(!grupoSel&&estado.concurso==='nom'){toast('Selecciona tu grupo de inscripción primero','#C0392B');return;}
-  const restantes = getSimulacrosRestantes();
   const docente = getDocenteSesion();
-  if(docente && docente.rol!=='admin' && restantes<=0){
-    toast('⚠️ Alcanzaste tu límite de simulacros este mes. Actualiza tu plan para continuar.','#E67E22');
-    return;
+  // Verificar límite en servidor
+  if(docente && docente.id){
+    try {
+      const resLim = await fetch(SUPABASE_URL+'/functions/v1/verificar-limite', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY},
+        body: JSON.stringify({docente_id: docente.id})
+      });
+      const lim = await resLim.json();
+      if(!lim.permitido){
+        toast('⚠️ Alcanzaste tu límite de '+lim.limite+' simulacros este mes. Actualiza tu plan para continuar.','#E67E22');
+        return;
+      }
+    } catch(e){
+      // Si falla el servidor, usar validación local como respaldo
+      const restantes = getSimulacrosRestantes();
+      if(docente.rol!=='admin' && restantes<=0){
+        toast('⚠️ Alcanzaste tu límite de simulacros este mes. Actualiza tu plan para continuar.','#E67E22');
+        return;
+      }
+    }
   }
   const modo = document.getElementById('modo-sim')?.value||'completo';
   const btnInic = document.querySelector('.btn-iniciar');
