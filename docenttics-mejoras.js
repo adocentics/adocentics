@@ -9,9 +9,10 @@
    1. CONFIGURACIÓN DE PLANES
    ─────────────────────────────────────────────*/
 const PLANES = {
-  Basico:   { nombre: 'Básico',   pdfs_semana: 2, simulacros_mes: 2 },
-  Completo: { nombre: 'Completo', pdfs_semana: 4, simulacros_mes: 4 },
-  Premium:  { nombre: 'Premium',  pdfs_semana: 6, simulacros_mes: 999 }
+  Basico:   { nombre: 'Básico',   precio: 15, pdfs_semana: 2, simulacros_mes: 4 },
+  Completo: { nombre: 'Completo', precio: 20, pdfs_semana: 4, simulacros_mes: 6 },
+  Premium:  { nombre: 'Premium',  precio: 29, pdfs_semana: 999, simulacros_mes: 999 },
+  Admin:    { nombre: 'Admin',    precio: 0,  pdfs_semana: 999, simulacros_mes: 999 }
 };
 
 /* ─────────────────────────────────────────────
@@ -32,16 +33,29 @@ function getLimitePDFs() {
    3. CONTADOR SEMANAL DE PDFs (localStorage)
    El contador se resetea cada lunes.
    ─────────────────────────────────────────────*/
-function _semanaKey() {
-  const d = new Date();
-  const day = d.getDay(); // 0=dom … 6=sab
-  const lunes = new Date(d);
-  lunes.setDate(d.getDate() - ((day + 6) % 7));
-  return 'dt_pdfs_' + lunes.toISOString().slice(0, 10);
+function _mesKey() {
+  return 'dt_pdfs_' + new Date().toISOString().slice(0,7);
 }
 
+function _getPDFsUsados() {
+  // Primero intentar desde sessionStorage (sincronizado con Supabase)
+  try {
+    const d = JSON.parse(sessionStorage.getItem('docente')||'{}');
+    if(d.simulacros_usados !== undefined) return d.simulacros_usados;
+  } catch(_){}
+  // Fallback localStorage
+  return parseInt(localStorage.getItem(_mesKey())||'0');
+}
+
+function _incrementarPDFsUsados() {
+  const key = _mesKey();
+  const actual = parseInt(localStorage.getItem(key)||'0');
+  localStorage.setItem(key, actual+1);
+}
+
+
 function getPDFsUsados() {
-  const key = _semanaKey();
+  const key = _mesKey();
   // Limpiar claves de semanas anteriores
   Object.keys(localStorage)
     .filter(k => k.startsWith('dt_pdfs_') && k !== key)
@@ -50,7 +64,7 @@ function getPDFsUsados() {
 }
 
 function incrementarPDFsUsados() {
-  const key = _semanaKey();
+  const key = _mesKey();
   const actual = getPDFsUsados();
   localStorage.setItem(key, actual + 1);
   return actual + 1;
