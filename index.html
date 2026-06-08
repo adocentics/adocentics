@@ -1697,6 +1697,7 @@ function renderAdmin(){
       <button onclick="switchAdminTab('docentes')" id="tab-btn-docentes" style="padding:10px 20px;border:none;background:none;font-family:var(--FC);font-size:13px;font-weight:600;cursor:pointer;border-bottom:3px solid var(--azul);color:var(--azul);margin-bottom:-2px">👥 Docentes</button>
       <button onclick="switchAdminTab('preguntas')" id="tab-btn-preguntas" style="padding:10px 20px;border:none;background:none;font-family:var(--FC);font-size:13px;font-weight:500;cursor:pointer;border-bottom:3px solid transparent;color:var(--gris);margin-bottom:-2px">📝 Preguntas</button>
       <button onclick="switchAdminTab('contenido')" id="tab-btn-contenido" style="padding:10px 20px;border:none;background:none;font-family:var(--FC);font-size:13px;font-weight:500;cursor:pointer;border-bottom:3px solid transparent;color:var(--gris);margin-bottom:-2px">📂 Contenido</button>
+      <button onclick="switchAdminTab('lecturas')" id="tab-btn-lecturas" style="padding:10px 20px;border:none;background:none;font-family:var(--FC);font-size:13px;font-weight:500;cursor:pointer;border-bottom:3px solid transparent;color:var(--gris);margin-bottom:-2px">📄 Lecturas</button>
     </div>
     <div id="admin-tab-content"></div>`;
   switchAdminTab(window._adminTab||'docentes');
@@ -1916,7 +1917,7 @@ function switchAdminTab(tab){
   window._adminTab = tab;
   const content = document.getElementById('admin-tab-content');
   if(!content) return;
-  ['docentes','preguntas','contenido'].forEach(t=>{
+  ['docentes','preguntas','contenido','lecturas'].forEach(t=>{
     const btn = document.getElementById('tab-btn-'+t);
     if(!btn) return;
     if(t===tab){ btn.style.borderBottomColor='var(--azul)';btn.style.color='var(--azul)';btn.style.fontWeight='600'; }
@@ -1958,8 +1959,154 @@ function switchAdminTab(tab){
   }
   else if(tab==='preguntas') renderAdminPreguntas();
   else if(tab==='contenido') renderAdminContenido();
+  else if(tab==='lecturas') renderAdminLecturas();
 }
 
+
+/* ══════════════════════════════════════════════
+   PANEL LECTURAS
+══════════════════════════════════════════════ */
+async function renderAdminLecturas(){
+  const content = document.getElementById('admin-tab-content');
+  if(!content) return;
+  content.innerHTML=`
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+        <div><div class="card-titulo">Gestión de Lecturas</div><div class="card-sub">Textos para comprensión lectora</div></div>
+        <button onclick="mostrarFormNuevaLectura()" style="background:var(--azul);color:#fff;border:none;padding:9px 18px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC)">+ Nueva lectura</button>
+      </div>
+      <div id="form-nueva-lectura" style="display:none;background:var(--gc);border-radius:12px;padding:20px;margin-bottom:20px">
+        <div style="font-family:var(--FT);font-size:15px;font-weight:600;margin-bottom:16px" id="form-lect-titulo">Nueva lectura</div>
+        <input type="hidden" id="lect-edit-id">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">TÍTULO</label><input id="lect-titulo" type="text" placeholder="Ej: Texto 1 — Primaria Nombramiento 2023" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none;box-sizing:border-box"></div>
+          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">ESPECIALIDAD</label><select id="lect-esp" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"><option value="">— General (todas) —</option><option value="primaria">Primaria</option><option value="inicial">Inicial</option><option value="matematica">Matemática</option><option value="comunicacion">Comunicación</option><option value="historia">Historia / CC.SS.</option><option value="ciencias">Ciencias / CTA</option><option value="ingles">Inglés</option><option value="arte">Arte</option><option value="religion">Religión</option><option value="ept">EPT</option><option value="computacion">Computación</option><option value="educacion_fisica">Educación Física</option><option value="especial">Educación Especial</option></select></div>
+          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">CONCURSO</label><select id="lect-concurso" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"><option value="nombramiento">📝 Nombramiento</option><option value="ascenso">🚀 Ascenso</option></select></div>
+        </div>
+        <div style="margin-bottom:12px"><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">TEXTO DE LA LECTURA</label><textarea id="lect-texto" rows="8" placeholder="Pega aquí el texto completo de la lectura..." style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none;resize:vertical;box-sizing:border-box"></textarea></div>
+        <div style="display:flex;gap:10px">
+          <button onclick="guardarLectura()" style="background:var(--azul);color:#fff;border:none;padding:10px 24px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC)">Guardar lectura</button>
+          <button onclick="document.getElementById('form-nueva-lectura').style.display='none'" style="background:var(--gc);color:var(--negro);border:1.5px solid var(--gm);padding:10px 24px;border-radius:7px;font-size:13px;cursor:pointer;font-family:var(--FC)">Cancelar</button>
+        </div>
+      </div>
+      <div id="tabla-lecturas">Cargando lecturas...</div>
+    </div>`;
+  await cargarTablaLecturas();
+}
+
+function mostrarFormNuevaLectura(){
+  document.getElementById('form-nueva-lectura').style.display='block';
+  document.getElementById('form-lect-titulo').textContent='Nueva lectura';
+  document.getElementById('lect-edit-id').value='';
+  document.getElementById('lect-titulo').value='';
+  document.getElementById('lect-texto').value='';
+  document.getElementById('lect-esp').value='';
+  document.getElementById('lect-concurso').value='nombramiento';
+}
+
+async function cargarTablaLecturas(){
+  const el = document.getElementById('tabla-lecturas');
+  if(!el) return;
+  try{
+    const res = await fetch(SUPABASE_URL+'/rest/v1/lecturas?order=id.desc&limit=100',
+      {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
+    const data = await res.json();
+    if(!data||data.length===0){
+      el.innerHTML='<div style="text-align:center;padding:40px;color:var(--gris)">No hay lecturas. ¡Crea la primera!</div>';
+      return;
+    }
+    el.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr style="background:var(--gc)">
+        <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--gris);font-weight:600">ID</th>
+        <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--gris);font-weight:600">TÍTULO</th>
+        <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--gris);font-weight:600">ESPECIALIDAD</th>
+        <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--gris);font-weight:600">CONCURSO</th>
+        <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--gris);font-weight:600">PREGUNTAS</th>
+        <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--gris);font-weight:600">ACCIONES</th>
+      </tr></thead>
+      <tbody>${data.map((l,i)=>`
+        <tr style="border-top:1px solid var(--gm);background:${i%2===0?'#fff':'var(--gc)'}">
+          <td style="padding:10px 12px;color:var(--gris);font-weight:600">#${l.id}</td>
+          <td style="padding:10px 12px;font-weight:500;max-width:250px">${l.titulo||'Sin título'}</td>
+          <td style="padding:10px 12px"><span style="background:#EBF5FF;color:#1A5E8A;padding:3px 8px;border-radius:5px;font-size:11px;font-weight:600">${l.especialidad||'General'}</span></td>
+          <td style="padding:10px 12px"><span style="background:${l.concurso==='ascenso'?'#E8F5E9':'#FFF3E0'};color:${l.concurso==='ascenso'?'#1A6A3A':'#B7600B'};padding:3px 8px;border-radius:5px;font-size:11px;font-weight:600">${l.concurso||'nombramiento'}</span></td>
+          <td style="padding:10px 12px;text-align:center;font-weight:600" id="lect-count-${l.id}">—</td>
+          <td style="padding:10px 12px">
+            <div style="display:flex;gap:6px">
+              <button onclick="editarLectura(${l.id},'${(l.titulo||'').replace(/'/g,"\'")}','${(l.especialidad||'')}','${(l.concurso||'nombramiento')}')" style="background:#EBF5FF;color:#1A5E8A;border:none;padding:5px 10px;border-radius:5px;font-size:11px;cursor:pointer;font-family:var(--FC)">✏️ Editar</button>
+              <button onclick="eliminarLectura(${l.id})" style="background:#FDEDED;color:#C0392B;border:none;padding:5px 10px;border-radius:5px;font-size:11px;cursor:pointer;font-family:var(--FC)">🗑 Eliminar</button>
+            </div>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+    // Cargar conteo de preguntas por lectura
+    const ids = data.map(l=>l.id);
+    for(const id of ids){
+      fetch(SUPABASE_URL+'/rest/v1/preguntas?lectura_id=eq.'+id+'&select=id',
+        {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'count=exact','Range':'0-0'}})
+        .then(r=>{ const c=r.headers.get('content-range'); const n=c?c.split('/')[1]:'?'; const cel=document.getElementById('lect-count-'+id); if(cel) cel.textContent=n+' preg'; });
+    }
+  } catch(e){ if(el) el.innerHTML='Error cargando lecturas.'; }
+}
+
+async function editarLectura(id, titulo, esp, concurso){
+  // Cargar texto completo
+  const res = await fetch(SUPABASE_URL+'/rest/v1/lecturas?id=eq.'+id+'&select=*',
+    {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
+  const data = await res.json();
+  if(!data||!data[0]) return;
+  const l = data[0];
+  document.getElementById('form-nueva-lectura').style.display='block';
+  document.getElementById('form-lect-titulo').textContent='Editar lectura #'+id;
+  document.getElementById('lect-edit-id').value=id;
+  document.getElementById('lect-titulo').value=l.titulo||'';
+  document.getElementById('lect-texto').value=l.texto||'';
+  document.getElementById('lect-esp').value=l.especialidad||'';
+  document.getElementById('lect-concurso').value=l.concurso||'nombramiento';
+  document.getElementById('form-nueva-lectura').scrollIntoView({behavior:'smooth'});
+}
+
+async function guardarLectura(){
+  const id    = document.getElementById('lect-edit-id').value;
+  const titulo  = document.getElementById('lect-titulo').value.trim();
+  const texto   = document.getElementById('lect-texto').value.trim();
+  const esp     = document.getElementById('lect-esp').value;
+  const concurso= document.getElementById('lect-concurso').value;
+  if(!texto){ toast('El texto de la lectura es obligatorio','#C0392B'); return; }
+  const payload = {titulo:titulo||'Sin título', texto, especialidad:esp||null, concurso, activa:true};
+  let res;
+  if(id){
+    res = await fetch(SUPABASE_URL+'/rest/v1/lecturas?id=eq.'+id,{
+      method:'PATCH',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify(payload)
+    });
+  } else {
+    res = await fetch(SUPABASE_URL+'/rest/v1/lecturas',{
+      method:'POST',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify(payload)
+    });
+  }
+  if(res.ok){
+    toast(id?'✅ Lectura actualizada':'✅ Lectura creada','#1A7A4A');
+    document.getElementById('form-nueva-lectura').style.display='none';
+    await cargarTablaLecturas();
+  } else {
+    toast('Error al guardar lectura','#C0392B');
+  }
+}
+
+async function eliminarLectura(id){
+  if(!confirm('¿Eliminar esta lectura? Las preguntas vinculadas quedarán sin lectura.')) return;
+  const res = await fetch(SUPABASE_URL+'/rest/v1/lecturas?id=eq.'+id,{
+    method:'DELETE',
+    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
+  });
+  if(res.ok){ toast('🗑 Lectura eliminada','#E67E22'); await cargarTablaLecturas(); }
+  else toast('Error al eliminar','#C0392B');
+}
 
 /* ══════════════════════════════════════════════
    PANEL CONTENIDO — Alertas + Materiales
@@ -2288,9 +2435,7 @@ async function importarExcelPreguntas(input){
   if(!file) return;
   input.value='';
 
-  // Necesita SheetJS (xlsx)
   if(typeof XLSX === 'undefined'){
-    // Cargar SheetJS dinámicamente si no está
     await new Promise((res,rej)=>{
       const s=document.createElement('script');
       s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
@@ -2299,39 +2444,67 @@ async function importarExcelPreguntas(input){
     });
   }
 
-  const toastId = toast('⏳ Leyendo archivo...','#1A7A4A', 0);
+  toast('⏳ Leyendo archivo...','#1A7A4A');
   try {
     const buf = await file.arrayBuffer();
     const wb  = XLSX.read(buf, {type:'array'});
-    const ws  = wb.Sheets[wb.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
 
-    // Plantilla v2: especialidad | concurso | subprueba | texto | opA | opB | opC | opD | correcta | pts | explicacion
-    // Plantilla antigua: tipo | subprueba | texto | opA | opB | opC | opD | respuesta | explicacion
+    // Detectar si tiene hoja de lecturas (plantilla v3)
+    const tieneHojaLecturas = wb.SheetNames.some(n=>n.toLowerCase().includes('lectura'));
+
+    // ── PASO 1: Subir lecturas si existen ──────────────────────
+    const mapaLecturas = {}; // { 'L1': 5, 'L2': 7 } ref_local → id_supabase
+
+    if(tieneHojaLecturas){
+      toast('⏳ Subiendo lecturas...','#1A7A4A');
+      const wsLect = wb.Sheets[wb.SheetNames.find(n=>n.toLowerCase().includes('lectura'))];
+      const rowsLect = XLSX.utils.sheet_to_json(wsLect, {header:1, defval:''});
+      // Saltar 4 filas de encabezado
+      const dataLect = rowsLect.slice(4).filter(r=>r.some(c=>c!==''));
+
+      for(const r of dataLect){
+        const ref    = String(r[0]||'').trim().toUpperCase(); // L1, L2, etc.
+        const titulo = String(r[1]||'').trim();
+        const texto  = String(r[2]||'').trim();
+        const esp    = String(r[3]||'').trim().toLowerCase();
+        const conc   = String(r[4]||'nombramiento').trim().toLowerCase();
+
+        if(!ref || !texto) continue;
+
+        const res = await fetch(SUPABASE_URL+'/rest/v1/lecturas',{
+          method:'POST',
+          headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+          body: JSON.stringify({titulo:titulo||ref, texto, especialidad:esp||null, concurso:conc, activa:true})
+        });
+        if(res.ok){
+          const data = await res.json();
+          if(data && data[0]) mapaLecturas[ref] = data[0].id;
+        }
+      }
+      toast('✅ Lecturas subidas: '+Object.keys(mapaLecturas).length,'#1A7A4A');
+    }
+
+    // ── PASO 2: Subir preguntas ────────────────────────────────
+    const wsPreg = wb.Sheets[wb.SheetNames.find(n=>
+      !n.toLowerCase().includes('lectura') && !n.toLowerCase().includes('referencia') && !n.toLowerCase().includes('ref')
+    ) || wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(wsPreg, {header:1, defval:''});
+
     const primeraFila = rows[1] || [];
     const esNuevaPlantilla = isNaN(parseInt(primeraFila[0])) && String(primeraFila[0]||'').length > 2;
-
-    // Saltar filas de encabezado (nueva v2: 4 filas, antigua: 1)
     const inicioData = esNuevaPlantilla ? 4 : 1;
-    const dataRows = rows.slice(inicioData).filter(r=> r.some(c=>c!==''));
+    const dataRows = rows.slice(inicioData).filter(r=>r.some(c=>c!==''));
 
     if(dataRows.length === 0){
-      toast('⚠️ No se encontraron preguntas válidas en el archivo','#E67E22');
+      toast('⚠️ No se encontraron preguntas en el archivo','#E67E22');
       return;
     }
 
-    const mapaSubprueba = {
-      'habilidades generales': 'hg',
-      'conocimiento pedagógico': 'esp',
-      'conocimiento pedagogico': 'esp',
-      'especialidad': 'esp',
-      'hg': 'hg',
-      'esp': 'esp'
-    };
+    const mapaSubprueba = {'habilidades generales':'hg','conocimiento pedagógico':'esp','conocimiento pedagogico':'esp','especialidad':'esp','hg':'hg','esp':'esp'};
     const mapaRespuesta = {'a':0,'b':1,'c':2,'d':3,'0':0,'1':1,'2':2,'3':3};
 
     let ok=0, errores=[];
-    const BATCH = 20;
+    const BATCH=20;
 
     for(let i=0; i<dataRows.length; i+=BATCH){
       const lote = dataRows.slice(i, i+BATCH);
@@ -2339,16 +2512,17 @@ async function importarExcelPreguntas(input){
 
       lote.forEach((r, idx)=>{
         const fila = inicioData+i+idx+1;
-        let grupo_id, concurso, subRaw, texto, opA, opB, opC, opD, respRaw, explicacion;
+        let especialidad_val=null, lectura_id_val=null, concurso, subRaw, texto, opA, opB, opC, opD, respRaw, explicacion;
 
-        let especialidad_val = null;
-        let lectura_id_val = null;
         if(esNuevaPlantilla){
-          // v3: especialidad | concurso | subprueba | lectura_id | texto | opA | opB | opC | opD | correcta | pts | explicacion
+          // v3: especialidad | concurso | subprueba | lectura_ref | texto | opA | opB | opC | opD | correcta | pts | explicacion
           especialidad_val = String(r[0]||'').trim().toLowerCase();
           concurso   = String(r[1]||'').trim().toLowerCase();
           subRaw     = String(r[2]||'').trim().toLowerCase();
-          lectura_id_val = r[3] ? parseInt(r[3])||null : null;
+          const lectRef = String(r[3]||'').trim().toUpperCase();
+          // Resolver ref local (L1) a id real de Supabase
+          if(lectRef && mapaLecturas[lectRef]) lectura_id_val = mapaLecturas[lectRef];
+          else if(lectRef && !isNaN(parseInt(lectRef))) lectura_id_val = parseInt(lectRef);
           texto      = String(r[4]||'').trim();
           opA        = String(r[5]||'').trim();
           opB        = String(r[6]||'').trim();
@@ -2357,7 +2531,6 @@ async function importarExcelPreguntas(input){
           respRaw    = String(r[9]||'').trim().toLowerCase();
           explicacion= String(r[11]||'').trim();
         } else {
-          // Antigua: tipo | subprueba | texto | opA | opB | opC | opD | respuesta | explicacion
           concurso   = String(r[0]||'').trim().toLowerCase();
           subRaw     = String(r[1]||'').trim().toLowerCase();
           texto      = String(r[2]||'').trim();
@@ -2369,58 +2542,39 @@ async function importarExcelPreguntas(input){
           explicacion= String(r[8]||'').trim();
         }
 
-        if(!texto||!opA||!opB||!opC||!opD){
-          errores.push('Fila '+fila+': faltan datos');
-          return;
-        }
-        if(!['nombramiento','ascenso'].includes(concurso)){
-          errores.push('Fila '+fila+': concurso inválido "'+concurso+'"');
-          return;
-        }
+        if(!texto||!opA||!opB||!opC||!opD){ errores.push('Fila '+fila+': faltan datos'); return; }
+        if(!['nombramiento','ascenso'].includes(concurso)){ errores.push('Fila '+fila+': concurso inválido "'+concurso+'"'); return; }
         const subprueba = mapaSubprueba[subRaw];
-        if(!subprueba){
-          errores.push('Fila '+fila+': subprueba inválida "'+subRaw+'"');
-          return;
-        }
+        if(!subprueba){ errores.push('Fila '+fila+': subprueba inválida "'+subRaw+'"'); return; }
         const correcta = mapaRespuesta[respRaw];
-        if(correcta === undefined){
-          errores.push('Fila '+fila+': respuesta inválida "'+respRaw+'" (usa 0/1/2/3 o A/B/C/D)');
-          return;
-        }
+        if(correcta===undefined){ errores.push('Fila '+fila+': respuesta inválida "'+respRaw+'"'); return; }
 
         payload.push({
-          texto,
-          opciones: [opA, opB, opC, opD],
-          correcta,
-          concurso,
-          subprueba,
+          texto, opciones:[opA,opB,opC,opD], correcta, concurso, subprueba,
           especialidad: especialidad_val||null,
           lectura_id: lectura_id_val||null,
-          pts: subprueba==='hg' ? 2 : 3,
+          pts: subprueba==='hg'?2:3,
           explicacion: explicacion||null,
           activa: true
         });
       });
 
-      if(payload.length > 0){
+      if(payload.length>0){
         const res = await fetch(SUPABASE_URL+'/rest/v1/preguntas',{
           method:'POST',
           headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
           body: JSON.stringify(payload)
         });
-        if(res.ok) ok += payload.length;
-        else {
-          const e = await res.json();
-          errores.push('Error al insertar lote: '+(e.message||'desconocido'));
-        }
+        if(res.ok) ok+=payload.length;
+        else{ const e=await res.json(); errores.push('Error lote: '+(e.message||'desconocido')); }
       }
     }
 
-    // Resultado final
-    let msg = '✅ '+ok+' preguntas importadas correctamente.';
-    if(errores.length > 0) msg += ' ⚠️ '+errores.length+' errores (ver consola).';
+    let msg = '✅ '+ok+' preguntas importadas.';
+    if(Object.keys(mapaLecturas).length) msg += ' 📄 '+Object.keys(mapaLecturas).length+' lecturas subidas.';
+    if(errores.length) msg += ' ⚠️ '+errores.length+' errores (ver consola).';
     toast(msg, ok>0?'#1A7A4A':'#C0392B');
-    if(errores.length) console.warn('[DocentTics] Errores de importación:', errores);
+    if(errores.length) console.warn('[DocentTics] Errores:', errores);
     await cargarTablaPreguntas();
 
   } catch(err){
