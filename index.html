@@ -810,6 +810,10 @@ html, body {
           </div>
           <span class="preg-n" id="preg-area-badge"></span>
         </div>
+        <div id="lectura-container" style="display:none;background:#F8F9FF;border:1.5px solid #D0D9F0;border-radius:10px;padding:16px 20px;margin-bottom:20px;max-height:280px;overflow-y:auto">
+          <div style="font-size:11px;font-weight:700;color:#1A4A8A;letter-spacing:1px;margin-bottom:10px">📄 TEXTO DE LECTURA</div>
+          <div id="lectura-texto" style="font-size:14px;line-height:1.7;color:#2C3E50;white-space:pre-wrap"></div>
+        </div>
         <div class="preg-texto" id="preg-texto"></div>
         <div class="opciones" id="opciones"></div>
         <div class="explicacion" id="explicacion">
@@ -1406,22 +1410,32 @@ async function cargarPreguntasDB(concurso, grupoId, modo){
         if(esp) url += '&especialidad=eq.'+encodeURIComponent(esp);
       }
     }
-    const res = await fetch(url, {
+    // Traer también la lectura si existe
+    const urlFinal = url + '&select=*,lecturas(texto)';
+    const res = await fetch(urlFinal, {
       headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
     });
     if(!res.ok) return null;
     const data = await res.json();
     if(!data||data.length===0) return null;
-    // Mezclar aleatoriamente en cliente (Fisher-Yates)
-    for(let i=data.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[data[i],data[j]]=[data[j],data[i]];}
+    // Separar preguntas con lectura (no mezclar con las sin lectura)
+    const sinLectura = data.filter(p=>!p.lectura_id);
+    const conLectura = data.filter(p=>p.lectura_id);
+    // Mezclar solo las sin lectura (Fisher-Yates)
+    for(let i=sinLectura.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[sinLectura[i],sinLectura[j]]=[sinLectura[j],sinLectura[i]];}
+    // Las con lectura se agrupan juntas por lectura_id
+    conLectura.sort((a,b)=>a.lectura_id-b.lectura_id);
+    const todas = [...sinLectura, ...conLectura];
     // Normalizar formato
-    return data.map(p=>({
+    return todas.map(p=>({
       texto: p.texto,
       opciones: Array.isArray(p.opciones) ? p.opciones : JSON.parse(p.opciones),
       correcta: p.correcta,
       subprueba: p.subprueba,
       pts: p.pts||(p.subprueba==='hg'?2:3),
-      explicacion: p.explicacion||''
+      explicacion: p.explicacion||'',
+      lectura_id: p.lectura_id||null,
+      lectura_texto: p.lecturas?.texto||null
     }));
   } catch(e){ console.error('[DocentTics] cargarPreguntasDB:',e); return null; }
 }
@@ -1523,6 +1537,15 @@ function renderPregunta(){
   else b.innerHTML=`<div class="sp-banner asc"><div>🚀</div><div><div class="sp-banner-titulo">SIMULACRO DE ASCENSO DE ESCALA</div><div class="sp-banner-desc">Marco BDD, Ley 29944 y CNEB · Conocimiento pedagógico avanzado</div></div></div>`;
   document.getElementById('preg-n').textContent=`PREGUNTA ${pregActual+1} DE ${total}`;
   document.getElementById('preg-pts').textContent=`${p.pts||(esHG?2:3)} puntos`;
+  // Mostrar lectura si la pregunta tiene una asociada
+  const lecContainer = document.getElementById('lectura-container');
+  const lecTexto = document.getElementById('lectura-texto');
+  if(p.lectura_texto && lecContainer && lecTexto){
+    lecTexto.textContent = p.lectura_texto;
+    lecContainer.style.display = 'block';
+  } else if(lecContainer){
+    lecContainer.style.display = 'none';
+  }
   document.getElementById('preg-texto').textContent=p.texto;
   const opDiv=document.getElementById('opciones');opDiv.innerHTML='';
   const letras=['A','B','C','D'];
@@ -2319,18 +2342,20 @@ async function importarExcelPreguntas(input){
         let grupo_id, concurso, subRaw, texto, opA, opB, opC, opD, respRaw, explicacion;
 
         let especialidad_val = null;
+        let lectura_id_val = null;
         if(esNuevaPlantilla){
-          // v2: especialidad | concurso | subprueba | texto | opA | opB | opC | opD | correcta | pts | explicacion
+          // v3: especialidad | concurso | subprueba | lectura_id | texto | opA | opB | opC | opD | correcta | pts | explicacion
           especialidad_val = String(r[0]||'').trim().toLowerCase();
           concurso   = String(r[1]||'').trim().toLowerCase();
           subRaw     = String(r[2]||'').trim().toLowerCase();
-          texto      = String(r[3]||'').trim();
-          opA        = String(r[4]||'').trim();
-          opB        = String(r[5]||'').trim();
-          opC        = String(r[6]||'').trim();
-          opD        = String(r[7]||'').trim();
-          respRaw    = String(r[8]||'').trim().toLowerCase();
-          explicacion= String(r[10]||'').trim();
+          lectura_id_val = r[3] ? parseInt(r[3])||null : null;
+          texto      = String(r[4]||'').trim();
+          opA        = String(r[5]||'').trim();
+          opB        = String(r[6]||'').trim();
+          opC        = String(r[7]||'').trim();
+          opD        = String(r[8]||'').trim();
+          respRaw    = String(r[9]||'').trim().toLowerCase();
+          explicacion= String(r[11]||'').trim();
         } else {
           // Antigua: tipo | subprueba | texto | opA | opB | opC | opD | respuesta | explicacion
           concurso   = String(r[0]||'').trim().toLowerCase();
@@ -2370,6 +2395,7 @@ async function importarExcelPreguntas(input){
           concurso,
           subprueba,
           especialidad: especialidad_val||null,
+          lectura_id: lectura_id_val||null,
           pts: subprueba==='hg' ? 2 : 3,
           explicacion: explicacion||null,
           activa: true
