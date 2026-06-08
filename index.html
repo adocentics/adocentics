@@ -757,9 +757,9 @@ html, body {
       <button class="ni" onclick="irA('historial')"><span class="ni-ico">📊</span> Mi historial</button>
       <button class="ni" onclick="irA('progreso')"><span class="ni-ico">📈</span> Mi progreso</button>
 
-      <div class="sb-sec">ASCENSO</div>
-      <button class="ni" onclick="irA('sel-asc')"><span class="ni-ico">🚀</span> Simulacro ascenso</button>
-      <button class="ni" onclick="irA('escalas')"><span class="ni-ico">🎯</span> Escalas magisteriales</button>
+      <div class="sb-sec" id="sb-sec-ascenso">ASCENSO</div>
+      <button class="ni" id="sb-btn-ascenso" onclick="irA('sel-asc')"><span class="ni-ico">🚀</span> Simulacro ascenso</button>
+      <button class="ni" id="sb-btn-escalas" onclick="irA('escalas')"><span class="ni-ico">🎯</span> Escalas magisteriales</button>
 
       <div class="sb-sec">RECURSOS</div>
       <button class="ni" onclick="irA('materiales')"><span class="ni-ico">📂</span> Materiales MINEDU</button>
@@ -1096,6 +1096,12 @@ function _cargarSesionEnUI(docente) {
   // Mostrar bloque admin solo si es admin
   const bloqueAdmin = document.getElementById('sb-bloque-admin');
   if(bloqueAdmin) bloqueAdmin.style.display = docente.rol === 'admin' ? 'block' : 'none';
+  // Mostrar bloque ascenso solo si el docente tiene ese concurso
+  const esAscenso = (docente.tipo_concurso||'nombramiento') === 'ascenso' || docente.rol === 'admin';
+  ['sb-sec-ascenso','sb-btn-ascenso','sb-btn-escalas'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.style.display = esAscenso ? '' : 'none';
+  });
 }
 
 function getDocenteSesion() {
@@ -1321,9 +1327,10 @@ function renderGrupos(){
 
     if(claves){
       grupos = grupos.filter(g=>{
-        const nivelArea = (g.nivel+' '+g.area).toLowerCase();
-        // Incluir si alguna clave coincide con nivel o área del grupo
-        return claves.some(k=>nivelArea.includes(k));
+        const nivel = g.nivel.toLowerCase();
+        const area  = g.area.toLowerCase();
+        // Coincidencia exacta: nivel ES la clave o área ES la clave
+        return claves.some(k=> nivel===k || area===k || nivel===k+'/pronoei');
       });
     }
     // Si no hay match o si es admin, muestra todos los de la modalidad
