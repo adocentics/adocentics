@@ -1243,26 +1243,26 @@ async function _cargarUltimosSims(docenteId){
 }
 
 function renderSelector(tipo){
-  estado.concurso=tipo;filtroMod='EBR';grupoSel=null;
-  // Auto-set modalidad from docente session
+  estado.concurso=tipo; grupoSel=null;
   const _docSel = getDocenteSesion();
-  if(_docSel && _docSel.modalidad && _docSel.rol !== 'admin'){
-    const _m = _docSel.modalidad.toUpperCase().trim();
-    if(['EBR','EBA','EBE'].includes(_m)) filtroMod = _m;
-  }
-  const esAsc=tipo==='asc';
+  const esAsc = tipo==='asc';
+  const esp = _docSel ? (_docSel.especialidad||'').toLowerCase().trim() : '';
+  const mod = _docSel ? (_docSel.modalidad||'').toUpperCase().trim() : '';
+  const esAdmin = _docSel && _docSel.rol==='admin';
+
+  // Guardar especialidad como grupoSel para usarla en cargarPreguntasDB
+  if(esp) grupoSel = esp;
+
+  const etiquetaEsp = esp ? `<div style="background:${esAsc?'#E8F5E9':'#EBF5FF'};border:1.5px solid ${esAsc?'#1FAA72':'#3498DB'};border-radius:10px;padding:14px 18px;font-size:13px;color:${esAsc?'#1A6A3A':'#1A5E8A'};margin-bottom:20px;display:flex;align-items:center;gap:10px">
+    <span style="font-size:20px">🎯</span>
+    <div><strong>${mod} · ${esp.charAt(0).toUpperCase()+esp.slice(1)}</strong> — las preguntas serán de tu especialidad.</div>
+  </div>` : '';
+
   document.getElementById('contenido').innerHTML=`
     <div class="sec-tag2">${esAsc?'🚀 ASCENSO DE ESCALA':'📝 NOMBRAMIENTO / CONTRATO'}</div>
-    ${_docSel && _docSel.rol!=='admin' && _docSel.especialidad ? `<div style="background:${esAsc?'#E8F5E9':'#EBF5FF'};border:1.5px solid ${esAsc?'#1FAA72':'#3498DB'};border-radius:8px;padding:10px 14px;font-size:12px;color:${esAsc?'#1A6A3A':'#1A5E8A'};margin-bottom:8px">📌 Especialidad detectada: <strong>${_docSel.modalidad||''} · ${_docSel.especialidad}</strong> — las preguntas serán de tu área.</div>` : ''}
-    <div style="font-family:var(--FT);font-size:24px;font-weight:700;margin-bottom:6px">${esAsc?'Elige tu especialidad para ascenso':'Elige tu grupo de inscripción oficial MINEDU'}</div>
-    <div style="font-size:14px;color:var(--gris);font-weight:300;margin-bottom:24px">${esAsc?'Contenido pedagógico avanzado, Marco BDD y Ley 29944':'26 grupos según la Norma Técnica del Concurso · EBR · EBA · EBE'}</div>
+    <div style="font-family:var(--FT);font-size:24px;font-weight:700;margin-bottom:6px">Simulacro de ${esAsc?'Ascenso de Escala':'Nombramiento'}</div>
+    ${etiquetaEsp}
     ${esAsc?renderSelectorEscalas():''}
-    <div class="grupos-tabs" id="mod-tabs">
-      <button class="gtab sel" onclick="filtrarMod('EBR',this)">EBR</button>
-      <button class="gtab" onclick="filtrarMod('EBA',this)">EBA</button>
-      <button class="gtab" onclick="filtrarMod('EBE',this)">EBE</button>
-    </div>
-    <div class="grid-grupos" id="grid-grupos"></div>
     ${!esAsc?`<div class="info-prueba"><div class="ip-titulo">📋 ESTRUCTURA REAL — MINEDU</div><div class="ip-grid"><div class="ip-item">✓ Total: 75 preguntas · 3h 45min</div><div class="ip-item">✓ Puntaje máximo: 200 puntos</div><div class="ip-item">✓ Subprueba HG: 25 preg × 2pts = 50 pts</div><div class="ip-item">✓ Especialidad: 50 preg × 3pts = 150 pts</div><div class="ip-item">✓ Mínimo aprobatorio: 110 / 200 pts</div><div class="ip-item">✓ Mínimo Especialidad: 84 / 150 pts</div></div></div>`:''}
     <div class="card" style="margin-top:16px">
       <div class="card-titulo">Configurar simulacro</div><div class="card-sub">Elige el modo de práctica</div>
@@ -1272,14 +1272,6 @@ function renderSelector(tipo){
       </div>
       <button class="btn-iniciar ${esAsc?'btn-iniciar-verde':''}" onclick="iniciarSimulacro()">${esAsc?'🚀 Iniciar simulacro de ascenso →':'📝 Iniciar simulacro de nombramiento →'}</button>
     </div>`;
-  // Mostrar aviso de especialidad
-  const _d = getDocenteSesion();
-  const avisoEl = document.getElementById('selector-esp-aviso');
-  if(avisoEl && _d && _d.rol !== 'admin' && _d.especialidad){
-    avisoEl.style.display = 'block';
-    avisoEl.innerHTML = `📌 Mostrando grupos para tu especialidad: <strong>${_d.modalidad||''} · ${_d.especialidad}</strong>. Si necesitas otro grupo, contáctanos.`;
-  }
-  cargarConteoPreguntas().then(()=>renderGrupos());
 }
 
 function renderSelectorEscalas(){
@@ -1392,24 +1384,26 @@ function selGrupo(id,el){
 /* ── Carga preguntas desde Supabase ── */
 async function cargarPreguntasDB(concurso, grupoId, modo){
   try {
+    const _docQ = getDocenteSesion();
+    const esp = (_docQ && _docQ.especialidad) ? _docQ.especialidad.toLowerCase().trim() : null;
     let url = SUPABASE_URL + '/rest/v1/preguntas?activa=eq.true&limit=1000';
     if(concurso==='asc'){
       url += '&concurso=eq.ascenso';
-      // Si el docente tiene especialidad, filtrar también por grupo
-      const _docQ = getDocenteSesion();
-      if(_docQ && _docQ.especialidad && grupoId){
-        url += '&grupo_id=eq.'+grupoId;
-      }
+      if(esp) url += '&especialidad=eq.'+encodeURIComponent(esp);
     } else {
       if(modo==='hg'){
         url += '&concurso=eq.nombramiento&subprueba=eq.hg';
+        if(esp) url += '&especialidad=eq.'+encodeURIComponent(esp);
       } else if(modo==='esp'){
-        url += '&concurso=eq.nombramiento&subprueba=eq.esp&grupo_id=eq.'+grupoId;
+        url += '&concurso=eq.nombramiento&subprueba=eq.esp';
+        if(esp) url += '&especialidad=eq.'+encodeURIComponent(esp);
       } else if(modo==='rapido'){
-        url += '&concurso=eq.nombramiento&grupo_id=eq.'+grupoId+'&limit=20';
+        url += '&concurso=eq.nombramiento&limit=20';
+        if(esp) url += '&especialidad=eq.'+encodeURIComponent(esp);
       } else {
-        // completo: HG + ESP del grupo
-        url += '&concurso=eq.nombramiento&grupo_id=eq.'+grupoId;
+        // completo: todas las preguntas de la especialidad
+        url += '&concurso=eq.nombramiento';
+        if(esp) url += '&especialidad=eq.'+encodeURIComponent(esp);
       }
     }
     const res = await fetch(url, {
@@ -1433,7 +1427,7 @@ async function cargarPreguntasDB(concurso, grupoId, modo){
 }
 
 async function iniciarSimulacro(){
-  if(!grupoSel&&estado.concurso==='nom'){toast('Selecciona tu grupo de inscripción primero','#C0392B');return;}
+  // Especialidad viene automática del perfil del docente
   const docente = getDocenteSesion();
   const modo = document.getElementById('modo-sim')?.value||'completo';
   // Verificar límite en servidor solo para modo completo
@@ -2289,13 +2283,12 @@ async function importarExcelPreguntas(input){
     const ws  = wb.Sheets[wb.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
 
-    // Detectar si es plantilla nueva (col 0 = grupo_id numérico) o antigua (col 0 = tipo texto)
-    // Nueva plantilla: grupo_id | concurso | subprueba | texto | opA | opB | opC | opD | correcta | pts | explicacion
+    // Plantilla v2: especialidad | concurso | subprueba | texto | opA | opB | opC | opD | correcta | pts | explicacion
     // Plantilla antigua: tipo | subprueba | texto | opA | opB | opC | opD | respuesta | explicacion
     const primeraFila = rows[1] || [];
-    const esNuevaPlantilla = !isNaN(parseInt(primeraFila[0]));
+    const esNuevaPlantilla = isNaN(parseInt(primeraFila[0])) && String(primeraFila[0]||'').length > 2;
 
-    // Saltar filas de encabezado (nuevas: 4 filas, antigua: 1)
+    // Saltar filas de encabezado (nueva v2: 4 filas, antigua: 1)
     const inicioData = esNuevaPlantilla ? 4 : 1;
     const dataRows = rows.slice(inicioData).filter(r=> r.some(c=>c!==''));
 
@@ -2325,9 +2318,10 @@ async function importarExcelPreguntas(input){
         const fila = inicioData+i+idx+1;
         let grupo_id, concurso, subRaw, texto, opA, opB, opC, opD, respRaw, explicacion;
 
+        let especialidad_val = null;
         if(esNuevaPlantilla){
-          // Nueva: grupo_id | concurso | subprueba | texto | opA | opB | opC | opD | correcta | pts | explicacion
-          grupo_id   = parseInt(r[0])||null;
+          // v2: especialidad | concurso | subprueba | texto | opA | opB | opC | opD | correcta | pts | explicacion
+          especialidad_val = String(r[0]||'').trim().toLowerCase();
           concurso   = String(r[1]||'').trim().toLowerCase();
           subRaw     = String(r[2]||'').trim().toLowerCase();
           texto      = String(r[3]||'').trim();
@@ -2339,7 +2333,6 @@ async function importarExcelPreguntas(input){
           explicacion= String(r[10]||'').trim();
         } else {
           // Antigua: tipo | subprueba | texto | opA | opB | opC | opD | respuesta | explicacion
-          grupo_id   = null;
           concurso   = String(r[0]||'').trim().toLowerCase();
           subRaw     = String(r[1]||'').trim().toLowerCase();
           texto      = String(r[2]||'').trim();
@@ -2376,7 +2369,7 @@ async function importarExcelPreguntas(input){
           correcta,
           concurso,
           subprueba,
-          grupo_id,
+          especialidad: especialidad_val||null,
           pts: subprueba==='hg' ? 2 : 3,
           explicacion: explicacion||null,
           activa: true
