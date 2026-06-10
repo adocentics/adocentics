@@ -753,14 +753,11 @@ html, body {
       <button class="ni on" onclick="irA('dashboard')"><span class="ni-ico">🏠</span> Dashboard</button>
 
       <div class="sb-sec">NOMBRAMIENTO</div>
-      <button class="ni" onclick="irA('sel-nom')"><span class="ni-ico">📝</span> Nuevo simulacro</button>
+      <button class="ni" onclick="irA('examen-pdf')"><span class="ni-ico">📋</span> Exámenes reales</button>
       <button class="ni" onclick="irA('historial')"><span class="ni-ico">📊</span> Mi historial</button>
       <button class="ni" onclick="irA('progreso')"><span class="ni-ico">📈</span> Mi progreso</button>
 
-      <div class="sb-sec" id="sb-sec-ascenso">ASCENSO</div>
-      <button class="ni" id="sb-btn-ascenso" onclick="irA('sel-asc')"><span class="ni-ico">🚀</span> Simulacro ascenso</button>
       <button class="ni" onclick="irA('examen-pdf')"><span class="ni-ico">📋</span> Exámenes reales</button>
-      <button class="ni" id="sb-btn-escalas" onclick="irA('escalas')"><span class="ni-ico">🎯</span> Escalas magisteriales</button>
 
       <div class="sb-sec">RECURSOS</div>
       <button class="ni" onclick="irA('materiales')"><span class="ni-ico">📂</span> Materiales MINEDU</button>
@@ -1103,7 +1100,6 @@ function _cargarSesionEnUI(docente) {
   if(bloqueAdmin) bloqueAdmin.style.display = docente.rol === 'admin' ? 'block' : 'none';
   // Mostrar bloque ascenso solo si el docente tiene ese concurso
   const esAscenso = (docente.tipo_concurso||'nombramiento') === 'ascenso' || docente.rol === 'admin';
-  ['sb-sec-ascenso','sb-btn-ascenso','sb-btn-escalas'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.style.display = esAscenso ? '' : 'none';
   });
@@ -1168,14 +1164,14 @@ function renderDashboard(){
   const _tc = _dDash?.tipo_concurso || 'nombramiento';
   const _esAdmin = _dDash?.rol === 'admin';
   const _cardNom = `
-    <div class="card-concurso cc-nom" onclick="irA('sel-nom')" style="cursor:pointer">
+    <div class="card-concurso cc-nom" onclick="irA('examen-pdf')" style="cursor:pointer">
       <div class="cc-ico">📝</div><div class="cc-titulo">Nombramiento Docente</div>
       <div class="cc-desc">Simulacro oficial: 75 preguntas · 3h 45min · Puntaje sobre 200. Dos subpruebas según la estructura real del MINEDU.</div>
       <span class="cc-tag tag-nom">Subprueba HG (25×2pts) + Especialidad (50×3pts)</span>
       <div class="cc-escala"><div class="escala-item">✓ 26 grupos oficiales EBR / EBA / EBE</div><div class="escala-item">✓ Mínimo aprobatorio: 110 / 200 pts</div></div>
     </div>`;
   const _cardAsc = `
-    <div class="card-concurso cc-asc" onclick="irA('sel-asc')" style="cursor:pointer">
+
       <div class="cc-ico">🚀</div><div class="cc-titulo">Ascenso de Escala</div>
       <div class="cc-desc">Prepárate para subir de escala magisterial. Marco BDD, Ley 29944 y CNEB avanzado.</div>
       <span class="cc-tag tag-asc">Escalas 1ra a 8va · Sueldos S/1,800 a S/9,801</span>
@@ -1696,9 +1692,7 @@ function renderAdmin(){
     </div>
     <div style="display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid var(--gm)">
       <button onclick="switchAdminTab('docentes')" id="tab-btn-docentes" style="padding:10px 20px;border:none;background:none;font-family:var(--FC);font-size:13px;font-weight:600;cursor:pointer;border-bottom:3px solid var(--azul);color:var(--azul);margin-bottom:-2px">👥 Docentes</button>
-      <button onclick="switchAdminTab('preguntas')" id="tab-btn-preguntas" style="padding:10px 20px;border:none;background:none;font-family:var(--FC);font-size:13px;font-weight:500;cursor:pointer;border-bottom:3px solid transparent;color:var(--gris);margin-bottom:-2px">📝 Preguntas</button>
       <button onclick="switchAdminTab('contenido')" id="tab-btn-contenido" style="padding:10px 20px;border:none;background:none;font-family:var(--FC);font-size:13px;font-weight:500;cursor:pointer;border-bottom:3px solid transparent;color:var(--gris);margin-bottom:-2px">📂 Contenido</button>
-      <button onclick="switchAdminTab('lecturas')" id="tab-btn-lecturas" style="padding:10px 20px;border:none;background:none;font-family:var(--FC);font-size:13px;font-weight:500;cursor:pointer;border-bottom:3px solid transparent;color:var(--gris);margin-bottom:-2px">📄 Lecturas</button>
       <button onclick="switchAdminTab('examenes')" id="tab-btn-examenes" style="padding:10px 20px;border:none;background:none;font-family:var(--FC);font-size:13px;font-weight:500;cursor:pointer;border-bottom:3px solid transparent;color:var(--gris);margin-bottom:-2px">📋 Exámenes PDF</button>
     </div>
     <div id="admin-tab-content"></div>`;
@@ -1938,7 +1932,7 @@ function switchAdminTab(tab){
   window._adminTab = tab;
   const content = document.getElementById('admin-tab-content');
   if(!content) return;
-  ['docentes','preguntas','contenido','lecturas','examenes'].forEach(t=>{
+  ['docentes','contenido','examenes'].forEach(t=>{
     const btn = document.getElementById('tab-btn-'+t);
     if(!btn) return;
     if(t===tab){ btn.style.borderBottomColor='var(--azul)';btn.style.color='var(--azul)';btn.style.fontWeight='600'; }
@@ -1978,9 +1972,7 @@ function switchAdminTab(tab){
       </div>`;
     cargarDocentes();
   }
-  else if(tab==='preguntas') renderAdminPreguntas();
   else if(tab==='contenido') renderAdminContenido();
-  else if(tab==='lecturas') renderAdminLecturas();
   else if(tab==='examenes') renderAdminExamenes();
 }
 
@@ -3302,6 +3294,7 @@ async function renderAdminExamenes(){
           <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">TÍTULO</label><input id="exam-titulo" type="text" placeholder="Ej: Nombramiento Primaria 2023" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none;box-sizing:border-box"></div>
           <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">ESPECIALIDAD</label><select id="exam-esp" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"><option value="">— General —</option><option value="primaria">Primaria</option><option value="inicial">Inicial</option><option value="matematica">Matemática</option><option value="comunicacion">Comunicación</option><option value="historia">Historia / CC.SS.</option><option value="ciencias">Ciencias / CTA</option><option value="ingles">Inglés</option><option value="arte">Arte</option><option value="religion">Religión</option><option value="ept">EPT</option><option value="computacion">Computación</option><option value="educacion_fisica">Educación Física</option><option value="especial">Educación Especial</option></select></div>
           <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">CONCURSO</label><select id="exam-concurso" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"><option value="nombramiento">📝 Nombramiento</option><option value="ascenso">🚀 Ascenso</option></select></div>
+          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">TIPO DE EXAMEN</label><select id="exam-tipo" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"><option value="pasado">📁 Años pasados (todos los planes)</option><option value="nuevo">⭐ Nuevo PerúEduca/SIFODS (Completo y Premium)</option></select></div>
           <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">AÑO</label><input id="exam-anio" type="number" placeholder="2024" min="2010" max="2030" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none;box-sizing:border-box"></div>
           <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">N° PREGUNTAS</label><input id="exam-total" type="number" placeholder="75" min="1" max="120" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none;box-sizing:border-box"></div>
           <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">ALTERNATIVAS</label><select id="exam-alts" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"><option value="4">4 (A B C D)</option><option value="3">3 (A B C)</option></select></div>
@@ -3375,7 +3368,8 @@ async function guardarExamen(){
     });
   }
 
-  const payload = {titulo, especialidad:esp||null, concurso, anio, total_preguntas:total, alternativas:alts, activo:true};
+  const tipo = document.getElementById('exam-tipo')?.value||'pasado';
+  const payload = {titulo, especialidad:esp||null, concurso, anio, total_preguntas:total, alternativas:alts, tipo_examen:tipo, activo:true};
   if(respuestas) payload.respuestas = respuestas;
 
   try{
@@ -3436,6 +3430,7 @@ async function cargarTablaExamenes(){
         <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--gris);font-weight:600">TÍTULO</th>
         <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--gris);font-weight:600">ESPECIALIDAD</th>
         <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--gris);font-weight:600">CONCURSO</th>
+        <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--gris);font-weight:600">TIPO</th>
         <th style="padding:10px 12px;text-align:center;font-size:11px;color:var(--gris);font-weight:600">PREGS</th>
         <th style="padding:10px 12px;text-align:center;font-size:11px;color:var(--gris);font-weight:600">PDF</th>
         <th style="padding:10px 12px;text-align:center;font-size:11px;color:var(--gris);font-weight:600">RESP</th>
@@ -3447,6 +3442,7 @@ async function cargarTablaExamenes(){
           <td style="padding:10px 12px;font-weight:500">${e.titulo}</td>
           <td style="padding:10px 12px"><span style="background:#EBF5FF;color:#1A5E8A;padding:3px 8px;border-radius:5px;font-size:11px;font-weight:600">${e.especialidad||'General'}</span></td>
           <td style="padding:10px 12px"><span style="background:${e.concurso==='ascenso'?'#E8F5E9':'#FFF3E0'};color:${e.concurso==='ascenso'?'#1A6A3A':'#B7600B'};padding:3px 8px;border-radius:5px;font-size:11px;font-weight:600">${e.concurso}</span></td>
+          <td style="padding:10px 12px"><span style="background:${e.tipo_examen==='nuevo'?'#EDE7F6':'#F5F5F5'};color:${e.tipo_examen==='nuevo'?'#6A1B9A':'#555'};padding:3px 8px;border-radius:5px;font-size:11px;font-weight:600">${e.tipo_examen==='nuevo'?'⭐ Nuevo':'📁 Pasado'}</span></td>
           <td style="padding:10px 12px;text-align:center">${e.total_preguntas} (${e.alternativas} alt.)</td>
           <td style="padding:10px 12px;text-align:center">${e.pdf_examen_url?'<span style="color:#1A7A4A;font-weight:600">✅</span>':'<span style="color:#C0392B">❌</span>'}</td>
           <td style="padding:10px 12px;text-align:center">${e.pdf_respuestas_url?'<span style="color:#1A7A4A;font-weight:600">✅</span>':'<span style="color:#E67E22">⏳</span>'}</td>
@@ -3477,6 +3473,7 @@ async function editarExamen(id){
   document.getElementById('exam-anio').value=e.anio||'';
   document.getElementById('exam-total').value=e.total_preguntas||75;
   document.getElementById('exam-alts').value=e.alternativas||4;
+  document.getElementById('exam-tipo').value=e.tipo_examen||'pasado';
   // Reconstruir clave de respuestas
   if(e.respuestas){
     const lineas = Object.entries(e.respuestas).sort((a,b)=>parseInt(a[0])-parseInt(b[0])).map(([n,r])=>n+'-'+r).join('\n');
@@ -3503,16 +3500,25 @@ async function renderSelectorExamenesPDF(){
   if(!contenido) return;
   const doc = getDocenteSesion();
   const esp = doc ? (doc.especialidad||'').toLowerCase().trim() : '';
-  const concurso = doc ? (doc.tipo_concurso||'nombramiento') : 'nombramiento';
+  const plan = doc ? (doc.plan||'Basico') : 'Basico';
+  const esAdmin = doc && doc.rol==='admin';
+
+  // Límites según plan
+  const LIMITES_NUEVOS = {'Basico':0,'Completo':2,'Premium':4};
+  const limiteNuevos = esAdmin ? 999 : (LIMITES_NUEVOS[plan]||0);
 
   contenido.innerHTML=`
     <div style="font-family:var(--FT);font-size:24px;font-weight:700;margin-bottom:6px">Exámenes Reales MINEDU</div>
-    <div style="font-size:14px;color:var(--gris);margin-bottom:24px">Resuelve exámenes oficiales de años anteriores</div>
+    <div style="font-size:14px;color:var(--gris);margin-bottom:8px">Resuelve exámenes oficiales con hoja de respuestas interactiva</div>
+    <div style="background:#EBF5FF;border:1.5px solid #3498DB;border-radius:8px;padding:10px 16px;font-size:12px;color:#1A5E8A;margin-bottom:24px">
+      📌 Plan <strong>${plan}</strong> — Exámenes pasados: ✅ Ilimitados · Exámenes nuevos: ${limiteNuevos===0?'❌ No incluido':'✅ '+limiteNuevos+' por mes'}
+      ${limiteNuevos===0?'<a href="#" onclick="irA('planes')" style="color:var(--azul);margin-left:8px;font-weight:600">Actualizar plan →</a>':''}
+    </div>
     <div id="lista-examenes-pdf">Cargando exámenes...</div>`;
 
   try{
     let url = SUPABASE_URL+'/rest/v1/examenes_pdf?activo=eq.true&order=anio.desc';
-    if(esp && doc.rol!=='admin') url += '&especialidad=eq.'+encodeURIComponent(esp);
+    if(esp && !esAdmin) url += '&especialidad=eq.'+encodeURIComponent(esp);
     const res = await fetch(url,{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
     const data = await res.json();
     const el = document.getElementById('lista-examenes-pdf');
@@ -3521,18 +3527,52 @@ async function renderSelectorExamenesPDF(){
       el.innerHTML='<div style="text-align:center;padding:40px;color:var(--gris)">No hay exámenes disponibles para tu especialidad aún.</div>';
       return;
     }
-    el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">
-      ${data.map(e=>`
-        <div style="background:#fff;border:1.5px solid var(--gm);border-radius:12px;padding:20px;cursor:pointer;transition:box-shadow .2s" onmouseover="this.style.boxShadow='0 4px 20px rgba(0,0,0,.1)'" onmouseout="this.style.boxShadow='none'" onclick="iniciarSimulacroPDF(${e.id})">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
-            <span style="background:#EBF5FF;color:#1A5E8A;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700">${e.anio||'—'}</span>
-            <span style="background:${e.concurso==='ascenso'?'#E8F5E9':'#FFF3E0'};color:${e.concurso==='ascenso'?'#1A6A3A':'#B7600B'};padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700">${e.concurso}</span>
-          </div>
-          <div style="font-family:var(--FT);font-size:16px;font-weight:600;margin-bottom:8px">${e.titulo}</div>
-          <div style="font-size:12px;color:var(--gris)">${e.total_preguntas} preguntas · ${e.alternativas} alternativas</div>
-          <div style="margin-top:14px;background:var(--azul);color:#fff;text-align:center;padding:10px;border-radius:8px;font-size:13px;font-weight:500">📋 Iniciar examen →</div>
-        </div>`).join('')}
-    </div>`;
+
+    // Contar exámenes nuevos usados este mes
+    let nuevosUsados = 0;
+    if(limiteNuevos > 0 && doc && doc.id){
+      const inicioMes = new Date(); inicioMes.setDate(1); inicioMes.setHours(0,0,0,0);
+      const rh = await fetch(SUPABASE_URL+'/rest/v1/simulacros_historial?docente_id=eq.'+doc.id+'&modo=eq.examen_pdf_nuevo&creado_en=gte.'+inicioMes.toISOString()+'&select=id',
+        {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'count=exact','Range':'0-0'}});
+      const cnt = rh.headers.get('content-range');
+      nuevosUsados = cnt ? parseInt(cnt.split('/')[1])||0 : 0;
+    }
+    const nuevosRestantes = Math.max(0, limiteNuevos - nuevosUsados);
+
+    // Separar pasados y nuevos
+    const pasados = data.filter(e=>e.tipo_examen!=='nuevo');
+    const nuevos  = data.filter(e=>e.tipo_examen==='nuevo');
+
+    const renderCard = (e, bloqueado=false) => `
+      <div style="background:#fff;border:1.5px solid ${bloqueado?'var(--gm)':'var(--gm)'};border-radius:12px;padding:20px;cursor:${bloqueado?'not-allowed':'pointer'};transition:box-shadow .2s;opacity:${bloqueado?'.6':'1'}" ${bloqueado?'':`onmouseover="this.style.boxShadow='0 4px 20px rgba(0,0,0,.1)'" onmouseout="this.style.boxShadow='none'" onclick="iniciarSimulacroPDF(${e.id})"`}>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+          <span style="background:#EBF5FF;color:#1A5E8A;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700">${e.anio||'—'}</span>
+          <span style="background:${e.concurso==='ascenso'?'#E8F5E9':'#FFF3E0'};color:${e.concurso==='ascenso'?'#1A6A3A':'#B7600B'};padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700">${e.concurso}</span>
+        </div>
+        <div style="font-family:var(--FT);font-size:16px;font-weight:600;margin-bottom:8px">${e.titulo}</div>
+        <div style="font-size:12px;color:var(--gris);margin-bottom:14px">${e.total_preguntas} preguntas · ${e.alternativas} alternativas</div>
+        ${bloqueado
+          ? `<div style="background:#F5F5F5;color:var(--gris);text-align:center;padding:10px;border-radius:8px;font-size:12px">🔒 Actualiza tu plan para acceder</div>`
+          : `<div style="background:var(--azul);color:#fff;text-align:center;padding:10px;border-radius:8px;font-size:13px;font-weight:500">📋 Iniciar examen →</div>`
+        }
+      </div>`;
+
+    let html = '';
+
+    if(pasados.length > 0){
+      html += `<div style="font-family:var(--FT);font-size:16px;font-weight:700;margin-bottom:14px">📁 Exámenes de años pasados</div>`;
+      html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:32px">${pasados.map(e=>renderCard(e,false)).join('')}</div>`;
+    }
+
+    if(nuevos.length > 0){
+      html += `<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div style="font-family:var(--FT);font-size:16px;font-weight:700">⭐ Exámenes nuevos (PerúEduca / SIFODS)</div>
+        ${limiteNuevos>0?`<span style="background:#EDE7F6;color:#6A1B9A;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600">${nuevosRestantes} restantes este mes</span>`:''}
+      </div>`;
+      html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">${nuevos.map(e=>renderCard(e, limiteNuevos===0||(nuevosRestantes<=0))).join('')}</div>`;
+    }
+
+    el.innerHTML = html || '<div style="text-align:center;padding:40px;color:var(--gris)">No hay exámenes disponibles aún.</div>';
   } catch(e){
     document.getElementById('lista-examenes-pdf').innerHTML='Error cargando exámenes.';
   }
@@ -3647,7 +3687,7 @@ function mostrarResultadosPDF(correctas, total, puntaje){
         docente_id: doc.id,
         nombre: e.titulo,
         concurso: e.concurso,
-        modo: 'examen_pdf',
+        modo: e.tipo_examen==='nuevo' ? 'examen_pdf_nuevo' : 'examen_pdf',
         puntaje,
         maximo: 200,
         total_preguntas: total,
