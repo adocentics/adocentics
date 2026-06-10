@@ -1782,8 +1782,8 @@ function renderTablaAdmin(){
       <td style="padding:12px 14px">
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           <button onclick="toggleActivo(${d.id},${!d.activo})" style="background:${d.activo?'var(--rojo-c)':'var(--vc)'};color:${d.activo?'var(--rojo)':'var(--verde)'};border:none;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--FC)">${d.activo?'Desactivar':'Activar'}</button>
-          <button onclick="<button onclick="resetearPassword(${d.id})" style="background:#FFF3E0;color:#B7600B;border:none;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--FC)">🔑 Contraseña</button>
-          eliminarDocente(${d.id},'${d.nombre.replace(/'/g,"\\'")}',${d.rol==='admin'})" style="background:var(--gc);color:var(--gris);border:none;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--FC)">Eliminar</button>
+          <button onclick="resetearPassword(${d.id})" style="background:#FFF3E0;color:#B7600B;border:none;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--FC)">🔑 Contraseña</button>
+          <button onclick="eliminarDocente(${d.id},'${d.nombre.replace(/'/g,\"\\'\")}',${ d.rol==='admin'})" style="background:var(--gc);color:var(--gris);border:none;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--FC)">Eliminar</button>
         </div>
       </td>
     </tr>`;
