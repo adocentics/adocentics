@@ -759,6 +759,7 @@ html, body {
 
       <div class="sb-sec" id="sb-sec-ascenso">ASCENSO</div>
       <button class="ni" id="sb-btn-ascenso" onclick="irA('sel-asc')"><span class="ni-ico">🚀</span> Simulacro ascenso</button>
+      <button class="ni" onclick="irA('examen-pdf')"><span class="ni-ico">📋</span> Exámenes reales</button>
       <button class="ni" id="sb-btn-escalas" onclick="irA('escalas')"><span class="ni-ico">🎯</span> Escalas magisteriales</button>
 
       <div class="sb-sec">RECURSOS</div>
@@ -1063,9 +1064,9 @@ function toast(msg,color='#1A4A8A'){const t=document.createElement('div');t.text
 
 function irA(sec){
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
-  const titulos={'dashboard':'Dashboard','sel-nom':'Simulacro de Nombramiento','historial':'Mi Historial','progreso':'Mi Progreso','sel-asc':'Simulacro de Ascenso','escalas':'Escalas Magisteriales','materiales':'Materiales MINEDU','alertas':'Alertas y Fechas','ranking':'Ranking'};
+  const titulos={'dashboard':'Dashboard','sel-nom':'Simulacro de Nombramiento','historial':'Mi Historial','progreso':'Mi Progreso','sel-asc':'Simulacro de Ascenso','escalas':'Escalas Magisteriales','materiales':'Materiales MINEDU','alertas':'Alertas y Fechas','ranking':'Ranking','examen-pdf':'Simulacro PDF'};
   document.getElementById('top-titulo').textContent=titulos[sec]||sec;
-  const renders={'dashboard':renderDashboard,'admin':renderAdmin,'sel-nom':()=>renderSelector('nom'),'historial':renderHistorial,'progreso':renderProgreso,'sel-asc':()=>renderSelector('asc'),'escalas':renderEscalas,'materiales':renderMateriales,'alertas':renderAlertas,'ranking':renderRanking};
+  const renders={'dashboard':renderDashboard,'admin':renderAdmin,'sel-nom':()=>renderSelector('nom'),'historial':renderHistorial,'progreso':renderProgreso,'sel-asc':()=>renderSelector('asc'),'escalas':renderEscalas,'materiales':renderMateriales,'alertas':renderAlertas,'ranking':renderRanking,'examen-pdf':renderSelectorExamenesPDF};
   if(renders[sec])renders[sec]();
   // Highlight active nav item
   document.querySelectorAll('.ni').forEach(b=>b.classList.remove('on'));
@@ -1698,6 +1699,7 @@ function renderAdmin(){
       <button onclick="switchAdminTab('preguntas')" id="tab-btn-preguntas" style="padding:10px 20px;border:none;background:none;font-family:var(--FC);font-size:13px;font-weight:500;cursor:pointer;border-bottom:3px solid transparent;color:var(--gris);margin-bottom:-2px">📝 Preguntas</button>
       <button onclick="switchAdminTab('contenido')" id="tab-btn-contenido" style="padding:10px 20px;border:none;background:none;font-family:var(--FC);font-size:13px;font-weight:500;cursor:pointer;border-bottom:3px solid transparent;color:var(--gris);margin-bottom:-2px">📂 Contenido</button>
       <button onclick="switchAdminTab('lecturas')" id="tab-btn-lecturas" style="padding:10px 20px;border:none;background:none;font-family:var(--FC);font-size:13px;font-weight:500;cursor:pointer;border-bottom:3px solid transparent;color:var(--gris);margin-bottom:-2px">📄 Lecturas</button>
+      <button onclick="switchAdminTab('examenes')" id="tab-btn-examenes" style="padding:10px 20px;border:none;background:none;font-family:var(--FC);font-size:13px;font-weight:500;cursor:pointer;border-bottom:3px solid transparent;color:var(--gris);margin-bottom:-2px">📋 Exámenes PDF</button>
     </div>
     <div id="admin-tab-content"></div>`;
   switchAdminTab(window._adminTab||'docentes');
@@ -1917,7 +1919,7 @@ function switchAdminTab(tab){
   window._adminTab = tab;
   const content = document.getElementById('admin-tab-content');
   if(!content) return;
-  ['docentes','preguntas','contenido','lecturas'].forEach(t=>{
+  ['docentes','preguntas','contenido','lecturas','examenes'].forEach(t=>{
     const btn = document.getElementById('tab-btn-'+t);
     if(!btn) return;
     if(t===tab){ btn.style.borderBottomColor='var(--azul)';btn.style.color='var(--azul)';btn.style.fontWeight='600'; }
@@ -1960,6 +1962,7 @@ function switchAdminTab(tab){
   else if(tab==='preguntas') renderAdminPreguntas();
   else if(tab==='contenido') renderAdminContenido();
   else if(tab==='lecturas') renderAdminLecturas();
+  else if(tab==='examenes') renderAdminExamenes();
 }
 
 
@@ -1973,7 +1976,11 @@ async function renderAdminLecturas(){
     <div class="card" style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
         <div><div class="card-titulo">Gestión de Lecturas</div><div class="card-sub">Textos para comprensión lectora</div></div>
-        <button onclick="mostrarFormNuevaLectura()" style="background:var(--azul);color:#fff;border:none;padding:9px 18px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC)">+ Nueva lectura</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button onclick="mostrarFormNuevaLectura()" style="background:var(--azul);color:#fff;border:none;padding:9px 18px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC)">+ Nueva lectura</button>
+          <button onclick="descargarPlantillaLecturas()" style="background:var(--gc);color:var(--gris);border:1.5px solid var(--gm);padding:9px 14px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC)">⬇ Plantilla Excel</button>
+          <label style="background:var(--gc);color:var(--gris);border:1.5px solid var(--gm);padding:9px 14px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC)">📥 Importar Excel<input type="file" accept=".xlsx,.xls" style="display:none" onchange="importarExcelLecturas(this)"></label>
+        </div>
       </div>
       <div id="form-nueva-lectura" style="display:none;background:var(--gc);border-radius:12px;padding:20px;margin-bottom:20px">
         <div style="font-family:var(--FT);font-size:15px;font-weight:600;margin-bottom:16px" id="form-lect-titulo">Nueva lectura</div>
@@ -2095,6 +2102,75 @@ async function guardarLectura(){
     await cargarTablaLecturas();
   } else {
     toast('Error al guardar lectura','#C0392B');
+  }
+}
+
+function descargarPlantillaLecturas(){
+  if(typeof XLSX==='undefined'){
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload=()=>descargarPlantillaLecturas();
+    document.head.appendChild(s); return;
+  }
+  const wb = XLSX.utils.book_new();
+  const datos = [
+    ['⚠️ ref debe ser L1, L2, L3... Usa esa referencia en la columna lectura_ref de la plantilla de Preguntas.'],
+    [],
+    ['ref','titulo','texto','especialidad','concurso'],
+    ['L1','Texto 1 — Primaria Nombramiento 2023','Pega aquí el texto completo de la lectura...','primaria','nombramiento'],
+    ['L2','Texto 2 — Primaria Nombramiento 2023','Pega aquí el texto completo de la lectura...','primaria','nombramiento'],
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(datos);
+  ws['!cols'] = [{wch:8},{wch:40},{wch:80},{wch:18},{wch:15}];
+  XLSX.utils.book_append_sheet(wb, ws, 'Lecturas');
+  XLSX.writeFile(wb, 'plantilla_lecturas.xlsx');
+}
+
+async function importarExcelLecturas(input){
+  const file = input.files[0];
+  if(!file) return;
+  input.value='';
+  if(typeof XLSX==='undefined'){
+    await new Promise((res,rej)=>{
+      const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+      s.onload=res; s.onerror=rej; document.head.appendChild(s);
+    });
+  }
+  toast('⏳ Subiendo lecturas...','#1A7A4A');
+  try{
+    const buf = await file.arrayBuffer();
+    const wb  = XLSX.read(buf,{type:'array'});
+    const ws  = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+    // Buscar fila de encabezado (la que tiene 'ref' o 'titulo')
+    let inicioData = 0;
+    for(let i=0;i<rows.length;i++){
+      const r0 = String(rows[i][0]||'').toLowerCase();
+      if(r0==='ref'||r0==='titulo'||r0==='texto'){ inicioData=i+1; break; }
+    }
+    const dataRows = rows.slice(inicioData).filter(r=>r.some(c=>c!==''));
+    if(!dataRows.length){ toast('⚠️ No se encontraron lecturas en el archivo','#E67E22'); return; }
+    let ok=0, errores=0;
+    for(const r of dataRows){
+      const titulo = String(r[1]||r[0]||'').trim();
+      const texto  = String(r[2]||'').trim();
+      const esp    = String(r[3]||'').trim().toLowerCase();
+      const conc   = String(r[4]||'nombramiento').trim().toLowerCase();
+      if(!texto){ errores++; continue; }
+      const res = await fetch(SUPABASE_URL+'/rest/v1/lecturas',{
+        method:'POST',
+        headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+        body:JSON.stringify({titulo:titulo||'Sin título',texto,especialidad:esp||null,concurso:conc,activa:true})
+      });
+      if(res.ok) ok++; else errores++;
+    }
+    let msg='✅ '+ok+' lecturas importadas.';
+    if(errores) msg+=' ⚠️ '+errores+' con error.';
+    toast(msg, ok>0?'#1A7A4A':'#C0392B');
+    await cargarTablaLecturas();
+  } catch(e){
+    toast('Error leyendo archivo: '+e.message,'#C0392B');
   }
 }
 
@@ -3187,6 +3263,395 @@ document.addEventListener('click', function(e){
   const navBtn = e.target.closest('[onclick*="irA"]');
   if(navBtn) cerrarSidebar();
 });
+
+/* ══════════════════════════════════════════════
+   PANEL EXÁMENES PDF
+══════════════════════════════════════════════ */
+async function renderAdminExamenes(){
+  const content = document.getElementById('admin-tab-content');
+  if(!content) return;
+  content.innerHTML=`
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+        <div><div class="card-titulo">Exámenes PDF</div><div class="card-sub">Exámenes reales MINEDU con hoja de respuestas</div></div>
+        <button onclick="mostrarFormNuevoExamen()" style="background:var(--azul);color:#fff;border:none;padding:9px 18px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC)">+ Nuevo examen</button>
+      </div>
+      <div id="form-nuevo-examen" style="display:none;background:var(--gc);border-radius:12px;padding:20px;margin-bottom:20px">
+        <div style="font-family:var(--FT);font-size:15px;font-weight:600;margin-bottom:16px" id="form-exam-titulo">Nuevo examen PDF</div>
+        <input type="hidden" id="exam-edit-id">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">TÍTULO</label><input id="exam-titulo" type="text" placeholder="Ej: Nombramiento Primaria 2023" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none;box-sizing:border-box"></div>
+          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">ESPECIALIDAD</label><select id="exam-esp" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"><option value="">— General —</option><option value="primaria">Primaria</option><option value="inicial">Inicial</option><option value="matematica">Matemática</option><option value="comunicacion">Comunicación</option><option value="historia">Historia / CC.SS.</option><option value="ciencias">Ciencias / CTA</option><option value="ingles">Inglés</option><option value="arte">Arte</option><option value="religion">Religión</option><option value="ept">EPT</option><option value="computacion">Computación</option><option value="educacion_fisica">Educación Física</option><option value="especial">Educación Especial</option></select></div>
+          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">CONCURSO</label><select id="exam-concurso" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"><option value="nombramiento">📝 Nombramiento</option><option value="ascenso">🚀 Ascenso</option></select></div>
+          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">AÑO</label><input id="exam-anio" type="number" placeholder="2024" min="2010" max="2030" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none;box-sizing:border-box"></div>
+          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">N° PREGUNTAS</label><input id="exam-total" type="number" placeholder="75" min="1" max="120" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none;box-sizing:border-box"></div>
+          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">ALTERNATIVAS</label><select id="exam-alts" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"><option value="4">4 (A B C D)</option><option value="3">3 (A B C)</option></select></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">PDF DEL EXAMEN (sin respuestas)</label><input id="exam-pdf-file" type="file" accept=".pdf" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"></div>
+          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">PDF DE RESPUESTAS DESARROLLADAS</label><input id="exam-resp-file" type="file" accept=".pdf" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"></div>
+        </div>
+        <div style="margin-bottom:16px">
+          <label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:8px">CLAVE DE RESPUESTAS <span style="font-weight:400;color:var(--gris)">(una por línea: 1-A, 2-C, 3-B...)</span></label>
+          <textarea id="exam-clave" rows="6" placeholder="1-A&#10;2-C&#10;3-B&#10;4-D&#10;..." style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none;resize:vertical;box-sizing:border-box;font-family:monospace"></textarea>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <button onclick="guardarExamen()" style="background:var(--azul);color:#fff;border:none;padding:10px 24px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC)">Guardar examen</button>
+          <button onclick="document.getElementById('form-nuevo-examen').style.display='none'" style="background:var(--gc);color:var(--negro);border:1.5px solid var(--gm);padding:10px 24px;border-radius:7px;font-size:13px;cursor:pointer;font-family:var(--FC)">Cancelar</button>
+          <span id="exam-upload-status" style="font-size:12px;color:var(--gris)"></span>
+        </div>
+      </div>
+      <div id="tabla-examenes">Cargando exámenes...</div>
+    </div>`;
+  await cargarTablaExamenes();
+}
+
+function mostrarFormNuevoExamen(){
+  document.getElementById('form-nuevo-examen').style.display='block';
+  document.getElementById('form-exam-titulo').textContent='Nuevo examen PDF';
+  document.getElementById('exam-edit-id').value='';
+  document.getElementById('exam-titulo').value='';
+  document.getElementById('exam-esp').value='';
+  document.getElementById('exam-concurso').value='nombramiento';
+  document.getElementById('exam-anio').value='';
+  document.getElementById('exam-total').value='75';
+  document.getElementById('exam-alts').value='4';
+  document.getElementById('exam-clave').value='';
+  document.getElementById('exam-upload-status').textContent='';
+}
+
+async function subirPDFStorage(file, path){
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/examenes/${path}`,{
+    method:'POST',
+    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/pdf','x-upsert':'true'},
+    body: file
+  });
+  if(!res.ok) throw new Error('Error subiendo PDF');
+  return `${SUPABASE_URL}/storage/v1/object/public/examenes/${path}`;
+}
+
+async function guardarExamen(){
+  const id       = document.getElementById('exam-edit-id').value;
+  const titulo   = document.getElementById('exam-titulo').value.trim();
+  const esp      = document.getElementById('exam-esp').value;
+  const concurso = document.getElementById('exam-concurso').value;
+  const anio     = parseInt(document.getElementById('exam-anio').value)||null;
+  const total    = parseInt(document.getElementById('exam-total').value)||75;
+  const alts     = parseInt(document.getElementById('exam-alts').value)||4;
+  const claveRaw = document.getElementById('exam-clave').value.trim();
+  const pdfFile  = document.getElementById('exam-pdf-file').files[0];
+  const respFile = document.getElementById('exam-resp-file').files[0];
+  const status   = document.getElementById('exam-upload-status');
+
+  if(!titulo){ toast('El título es obligatorio','#C0392B'); return; }
+  if(!claveRaw && !id){ toast('Ingresa la clave de respuestas','#C0392B'); return; }
+
+  // Parsear clave de respuestas
+  let respuestas = null;
+  if(claveRaw){
+    respuestas = {};
+    claveRaw.split('\n').forEach(linea=>{
+      const [num, resp] = linea.trim().split('-');
+      if(num && resp) respuestas[parseInt(num)] = resp.toUpperCase().trim();
+    });
+  }
+
+  const payload = {titulo, especialidad:esp||null, concurso, anio, total_preguntas:total, alternativas:alts, activo:true};
+  if(respuestas) payload.respuestas = respuestas;
+
+  try{
+    // Subir PDFs si se seleccionaron
+    const slug = titulo.toLowerCase().replace(/[^a-z0-9]/g,'_').substring(0,40)+'_'+(anio||Date.now());
+    if(pdfFile){
+      status.textContent='⏳ Subiendo PDF del examen...';
+      payload.pdf_examen_url = await subirPDFStorage(pdfFile, `examenes/${slug}.pdf`);
+    }
+    if(respFile){
+      status.textContent='⏳ Subiendo PDF de respuestas...';
+      payload.pdf_respuestas_url = await subirPDFStorage(respFile, `respuestas/${slug}_resp.pdf`);
+    }
+    status.textContent='⏳ Guardando...';
+
+    let res;
+    if(id){
+      res = await fetch(SUPABASE_URL+'/rest/v1/examenes_pdf?id=eq.'+id,{
+        method:'PATCH',
+        headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+        body:JSON.stringify(payload)
+      });
+    } else {
+      res = await fetch(SUPABASE_URL+'/rest/v1/examenes_pdf',{
+        method:'POST',
+        headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+        body:JSON.stringify(payload)
+      });
+    }
+    if(res.ok){
+      toast(id?'✅ Examen actualizado':'✅ Examen guardado','#1A7A4A');
+      document.getElementById('form-nuevo-examen').style.display='none';
+      await cargarTablaExamenes();
+    } else {
+      const e = await res.json();
+      toast('Error: '+(e.message||'desconocido'),'#C0392B');
+    }
+  } catch(e){
+    toast('Error subiendo archivos: '+e.message,'#C0392B');
+    status.textContent='';
+  }
+}
+
+async function cargarTablaExamenes(){
+  const el = document.getElementById('tabla-examenes');
+  if(!el) return;
+  try{
+    const res = await fetch(SUPABASE_URL+'/rest/v1/examenes_pdf?order=anio.desc,id.desc&limit=100',
+      {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
+    const data = await res.json();
+    if(!data||data.length===0){
+      el.innerHTML='<div style="text-align:center;padding:40px;color:var(--gris)">No hay exámenes. ¡Sube el primero!</div>';
+      return;
+    }
+    el.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr style="background:var(--gc)">
+        <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--gris);font-weight:600">AÑO</th>
+        <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--gris);font-weight:600">TÍTULO</th>
+        <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--gris);font-weight:600">ESPECIALIDAD</th>
+        <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--gris);font-weight:600">CONCURSO</th>
+        <th style="padding:10px 12px;text-align:center;font-size:11px;color:var(--gris);font-weight:600">PREGS</th>
+        <th style="padding:10px 12px;text-align:center;font-size:11px;color:var(--gris);font-weight:600">PDF</th>
+        <th style="padding:10px 12px;text-align:center;font-size:11px;color:var(--gris);font-weight:600">RESP</th>
+        <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--gris);font-weight:600">ACCIONES</th>
+      </tr></thead>
+      <tbody>${data.map((e,i)=>`
+        <tr style="border-top:1px solid var(--gm);background:${i%2===0?'#fff':'var(--gc)'}">
+          <td style="padding:10px 12px;font-weight:600;color:var(--azul)">${e.anio||'—'}</td>
+          <td style="padding:10px 12px;font-weight:500">${e.titulo}</td>
+          <td style="padding:10px 12px"><span style="background:#EBF5FF;color:#1A5E8A;padding:3px 8px;border-radius:5px;font-size:11px;font-weight:600">${e.especialidad||'General'}</span></td>
+          <td style="padding:10px 12px"><span style="background:${e.concurso==='ascenso'?'#E8F5E9':'#FFF3E0'};color:${e.concurso==='ascenso'?'#1A6A3A':'#B7600B'};padding:3px 8px;border-radius:5px;font-size:11px;font-weight:600">${e.concurso}</span></td>
+          <td style="padding:10px 12px;text-align:center">${e.total_preguntas} (${e.alternativas} alt.)</td>
+          <td style="padding:10px 12px;text-align:center">${e.pdf_examen_url?'<span style="color:#1A7A4A;font-weight:600">✅</span>':'<span style="color:#C0392B">❌</span>'}</td>
+          <td style="padding:10px 12px;text-align:center">${e.pdf_respuestas_url?'<span style="color:#1A7A4A;font-weight:600">✅</span>':'<span style="color:#E67E22">⏳</span>'}</td>
+          <td style="padding:10px 12px">
+            <div style="display:flex;gap:6px">
+              <button onclick="editarExamen(${e.id})" style="background:#EBF5FF;color:#1A5E8A;border:none;padding:5px 10px;border-radius:5px;font-size:11px;cursor:pointer;font-family:var(--FC)">✏️ Editar</button>
+              <button onclick="eliminarExamen(${e.id})" style="background:#FDEDED;color:#C0392B;border:none;padding:5px 10px;border-radius:5px;font-size:11px;cursor:pointer;font-family:var(--FC)">🗑 Eliminar</button>
+            </div>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+  } catch(e){ if(el) el.innerHTML='Error cargando exámenes.'; }
+}
+
+async function editarExamen(id){
+  const res = await fetch(SUPABASE_URL+'/rest/v1/examenes_pdf?id=eq.'+id+'&select=*',
+    {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
+  const data = await res.json();
+  if(!data||!data[0]) return;
+  const e = data[0];
+  document.getElementById('form-nuevo-examen').style.display='block';
+  document.getElementById('form-exam-titulo').textContent='Editar examen #'+id;
+  document.getElementById('exam-edit-id').value=id;
+  document.getElementById('exam-titulo').value=e.titulo||'';
+  document.getElementById('exam-esp').value=e.especialidad||'';
+  document.getElementById('exam-concurso').value=e.concurso||'nombramiento';
+  document.getElementById('exam-anio').value=e.anio||'';
+  document.getElementById('exam-total').value=e.total_preguntas||75;
+  document.getElementById('exam-alts').value=e.alternativas||4;
+  // Reconstruir clave de respuestas
+  if(e.respuestas){
+    const lineas = Object.entries(e.respuestas).sort((a,b)=>parseInt(a[0])-parseInt(b[0])).map(([n,r])=>n+'-'+r).join('\n');
+    document.getElementById('exam-clave').value=lineas;
+  }
+  document.getElementById('form-nuevo-examen').scrollIntoView({behavior:'smooth'});
+}
+
+async function eliminarExamen(id){
+  if(!confirm('¿Eliminar este examen?')) return;
+  const res = await fetch(SUPABASE_URL+'/rest/v1/examenes_pdf?id=eq.'+id,{
+    method:'DELETE',
+    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
+  });
+  if(res.ok){ toast('🗑 Examen eliminado','#E67E22'); await cargarTablaExamenes(); }
+  else toast('Error al eliminar','#C0392B');
+}
+
+/* ══════════════════════════════════════════════
+   PANTALLA SELECTOR DE EXÁMENES PDF (docente)
+══════════════════════════════════════════════ */
+async function renderSelectorExamenesPDF(){
+  const contenido = document.getElementById('contenido');
+  if(!contenido) return;
+  const doc = getDocenteSesion();
+  const esp = doc ? (doc.especialidad||'').toLowerCase().trim() : '';
+  const concurso = doc ? (doc.tipo_concurso||'nombramiento') : 'nombramiento';
+
+  contenido.innerHTML=`
+    <div style="font-family:var(--FT);font-size:24px;font-weight:700;margin-bottom:6px">Exámenes Reales MINEDU</div>
+    <div style="font-size:14px;color:var(--gris);margin-bottom:24px">Resuelve exámenes oficiales de años anteriores</div>
+    <div id="lista-examenes-pdf">Cargando exámenes...</div>`;
+
+  try{
+    let url = SUPABASE_URL+'/rest/v1/examenes_pdf?activo=eq.true&order=anio.desc';
+    if(esp && doc.rol!=='admin') url += '&especialidad=eq.'+encodeURIComponent(esp);
+    const res = await fetch(url,{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
+    const data = await res.json();
+    const el = document.getElementById('lista-examenes-pdf');
+    if(!el) return;
+    if(!data||data.length===0){
+      el.innerHTML='<div style="text-align:center;padding:40px;color:var(--gris)">No hay exámenes disponibles para tu especialidad aún.</div>';
+      return;
+    }
+    el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">
+      ${data.map(e=>`
+        <div style="background:#fff;border:1.5px solid var(--gm);border-radius:12px;padding:20px;cursor:pointer;transition:box-shadow .2s" onmouseover="this.style.boxShadow='0 4px 20px rgba(0,0,0,.1)'" onmouseout="this.style.boxShadow='none'" onclick="iniciarSimulacroPDF(${e.id})">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+            <span style="background:#EBF5FF;color:#1A5E8A;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700">${e.anio||'—'}</span>
+            <span style="background:${e.concurso==='ascenso'?'#E8F5E9':'#FFF3E0'};color:${e.concurso==='ascenso'?'#1A6A3A':'#B7600B'};padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700">${e.concurso}</span>
+          </div>
+          <div style="font-family:var(--FT);font-size:16px;font-weight:600;margin-bottom:8px">${e.titulo}</div>
+          <div style="font-size:12px;color:var(--gris)">${e.total_preguntas} preguntas · ${e.alternativas} alternativas</div>
+          <div style="margin-top:14px;background:var(--azul);color:#fff;text-align:center;padding:10px;border-radius:8px;font-size:13px;font-weight:500">📋 Iniciar examen →</div>
+        </div>`).join('')}
+    </div>`;
+  } catch(e){
+    document.getElementById('lista-examenes-pdf').innerHTML='Error cargando exámenes.';
+  }
+}
+
+let _examenPDFActual = null;
+let _respuestasDocente = {};
+
+async function iniciarSimulacroPDF(examenId){
+  const res = await fetch(SUPABASE_URL+'/rest/v1/examenes_pdf?id=eq.'+examenId+'&select=*',
+    {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
+  const data = await res.json();
+  if(!data||!data[0]){ toast('Error cargando examen','#C0392B'); return; }
+  _examenPDFActual = data[0];
+  _respuestasDocente = {};
+  renderSimulacroPDF();
+}
+
+function renderSimulacroPDF(){
+  const e = _examenPDFActual;
+  const total = e.total_preguntas;
+  const alts = e.alternativas===3 ? ['A','B','C'] : ['A','B','C','D'];
+  const contenido = document.getElementById('contenido');
+  contenido.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 380px;gap:0;height:calc(100vh - 110px);border:1.5px solid var(--gm);border-radius:12px;overflow:hidden">
+      <!-- PDF izquierda -->
+      <div style="display:flex;flex-direction:column;border-right:1.5px solid var(--gm)">
+        <div style="padding:12px 16px;background:var(--gc);border-bottom:1px solid var(--gm);display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:13px;font-weight:600">📄 ${e.titulo}</span>
+          <span style="font-size:12px;color:var(--gris)">Pág. <span id="pdf-pag">1/1</span></span>
+        </div>
+        <div style="flex:1;overflow:hidden">
+          ${e.pdf_examen_url
+            ? `<iframe src="${e.pdf_examen_url}" style="width:100%;height:100%;border:none"></iframe>`
+            : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--gris);font-size:14px">PDF no disponible</div>`
+          }
+        </div>
+      </div>
+      <!-- Hoja de respuestas derecha -->
+      <div style="display:flex;flex-direction:column">
+        <div style="padding:12px 16px;background:var(--gc);border-bottom:1px solid var(--gm);display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:13px;font-weight:600">🗒 Hoja de respuestas</span>
+          <span style="font-size:12px;color:var(--gris)" id="pdf-resp-count">0 / ${total}</span>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px">
+          <div style="display:flex;flex-direction:column;gap:8px" id="hoja-respuestas">
+            ${Array.from({length:total},(_,i)=>`
+              <div style="border:1.5px solid var(--gm);border-radius:8px;padding:10px 12px" id="preg-pdf-${i+1}">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                  <span style="font-size:12px;font-weight:600">Pregunta ${i+1}</span>
+                  <span style="font-size:11px;color:var(--gris)" id="estado-pdf-${i+1}">Sin responder</span>
+                </div>
+                <div style="display:flex;gap:6px">
+                  ${alts.map(a=>`<button onclick="marcarRespuestaPDF(${i+1},'${a}')" id="btn-pdf-${i+1}-${a}" style="flex:1;border:1.5px solid var(--gm);border-radius:6px;padding:8px 4px;font-size:13px;font-weight:600;cursor:pointer;background:#fff;font-family:var(--FC);transition:all .15s">${a}</button>`).join('')}
+                </div>
+              </div>`).join('')}
+          </div>
+        </div>
+        <div style="padding:12px;border-top:1px solid var(--gm)">
+          <button onclick="entregarSimulacroPDF()" style="width:100%;background:var(--azul);color:#fff;border:none;padding:14px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--FC)">Enviar respuestas →</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function marcarRespuestaPDF(num, alt){
+  const alts = _examenPDFActual.alternativas===3 ? ['A','B','C'] : ['A','B','C','D'];
+  _respuestasDocente[num] = alt;
+  // Actualizar UI
+  alts.forEach(a=>{
+    const btn = document.getElementById('btn-pdf-'+num+'-'+a);
+    if(btn){
+      btn.style.background = a===alt ? 'var(--azul)' : '#fff';
+      btn.style.color = a===alt ? '#fff' : 'var(--negro)';
+      btn.style.borderColor = a===alt ? 'var(--azul)' : 'var(--gm)';
+    }
+  });
+  const estado = document.getElementById('estado-pdf-'+num);
+  if(estado){ estado.textContent='Respondida'; estado.style.color='var(--verde)'; }
+  // Actualizar contador
+  const count = document.getElementById('pdf-resp-count');
+  if(count) count.textContent=Object.keys(_respuestasDocente).length+' / '+_examenPDFActual.total_preguntas;
+}
+
+function entregarSimulacroPDF(){
+  const e = _examenPDFActual;
+  const total = e.total_preguntas;
+  const respondidas = Object.keys(_respuestasDocente).length;
+  if(respondidas < total){
+    if(!confirm('Tienes '+( total - respondidas)+' preguntas sin responder. ¿Deseas entregar igual?')) return;
+  }
+  // Calcular puntaje
+  const respCorrectas = e.respuestas || {};
+  let correctas=0;
+  for(let i=1;i<=total;i++){
+    if(_respuestasDocente[i] && respCorrectas[i] && _respuestasDocente[i]===respCorrectas[i]) correctas++;
+  }
+  const puntaje = Math.round((correctas/total)*200);
+  mostrarResultadosPDF(correctas, total, puntaje);
+}
+
+function mostrarResultadosPDF(correctas, total, puntaje){
+  const e = _examenPDFActual;
+  const aprobado = puntaje >= 110;
+  // Guardar en historial
+  const doc = getDocenteSesion();
+  if(doc && doc.id){
+    fetch(SUPABASE_URL+'/rest/v1/simulacros_historial',{
+      method:'POST',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
+      body: JSON.stringify({
+        docente_id: doc.id,
+        nombre: e.titulo,
+        concurso: e.concurso,
+        modo: 'examen_pdf',
+        puntaje,
+        maximo: 200,
+        total_preguntas: total,
+        correctas,
+        grupo_id: null
+      })
+    }).catch(err=>console.warn('No se pudo guardar historial PDF:',err));
+  }
+  const contenido = document.getElementById('contenido');
+  contenido.innerHTML=`
+    <div class="card" style="max-width:600px;margin:0 auto;text-align:center">
+      <div style="font-size:48px;margin-bottom:16px">${aprobado?'🎉':'📚'}</div>
+      <div style="font-family:var(--FT);font-size:28px;font-weight:700;margin-bottom:8px">${puntaje} / 200</div>
+      <div style="font-size:16px;color:${aprobado?'var(--verde)':'#C0392B'};font-weight:600;margin-bottom:24px">${aprobado?'¡Aprobado!':'Por mejorar'}</div>
+      <div style="background:var(--gc);border-radius:10px;padding:20px;margin-bottom:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;text-align:center">
+        <div><div style="font-size:24px;font-weight:700;color:var(--azul)">${correctas}</div><div style="font-size:12px;color:var(--gris)">CORRECTAS</div></div>
+        <div><div style="font-size:24px;font-weight:700;color:#C0392B">${total-correctas}</div><div style="font-size:12px;color:var(--gris)">INCORRECTAS</div></div>
+      </div>
+      ${e.pdf_respuestas_url?`<a href="${e.pdf_respuestas_url}" target="_blank" style="display:block;background:#E8F5E9;color:#1A6A3A;border:1.5px solid #1FAA72;padding:12px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;margin-bottom:12px">📥 Ver respuestas desarrolladas</a>`:''}
+      <button onclick="irA('examen-pdf')" style="width:100%;background:var(--gc);color:var(--negro);border:1.5px solid var(--gm);padding:12px;border-radius:8px;font-size:14px;cursor:pointer;font-family:var(--FC)">← Volver a exámenes</button>
+    </div>`;
+}
+
 console.log('[DocentTics] ✅ Plataforma lista');
 </script>
 <div class="sb-overlay" id="sb-overlay" onclick="cerrarSidebar()"></div>
