@@ -1782,7 +1782,8 @@ function renderTablaAdmin(){
       <td style="padding:12px 14px">
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           <button onclick="toggleActivo(${d.id},${!d.activo})" style="background:${d.activo?'var(--rojo-c)':'var(--vc)'};color:${d.activo?'var(--rojo)':'var(--verde)'};border:none;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--FC)">${d.activo?'Desactivar':'Activar'}</button>
-          <button onclick="eliminarDocente(${d.id},'${d.nombre.replace(/'/g,"\\'")}',${d.rol==='admin'})" style="background:var(--gc);color:var(--gris);border:none;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--FC)">Eliminar</button>
+          <button onclick="<button onclick="resetearPassword(${d.id})" style="background:#FFF3E0;color:#B7600B;border:none;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--FC)">🔑 Contraseña</button>
+          eliminarDocente(${d.id},'${d.nombre.replace(/'/g,"\\'")}',${d.rol==='admin'})" style="background:var(--gc);color:var(--gris);border:none;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--FC)">Eliminar</button>
         </div>
       </td>
     </tr>`;
@@ -1803,6 +1804,21 @@ function renderTablaAdmin(){
   }
 
   if(document.getElementById('tabla-docentes')) document.getElementById('tabla-docentes').innerHTML = html;
+}
+
+async function resetearPassword(id){
+  const nueva = prompt('Nueva contraseña para el docente (mínimo 6 caracteres):');
+  if(!nueva) return;
+  if(nueva.length < 6){ toast('La contraseña debe tener al menos 6 caracteres','#C0392B'); return; }
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(nueva));
+  const hash = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  const res = await fetch(SUPABASE_URL+'/rest/v1/docentes?id=eq.'+id,{
+    method:'PATCH',
+    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
+    body: JSON.stringify({password_hash: hash})
+  });
+  if(res.ok) toast('✅ Contraseña actualizada correctamente','#1A7A4A');
+  else toast('Error al actualizar contraseña','#C0392B');
 }
 
 async function cambiarPlan(id, plan){
@@ -1856,12 +1872,15 @@ async function crearDocente(){
   if(!nombre||!correo||!pass){ toast('Completa todos los campos','#C0392B'); return; }
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)){ toast('El correo no tiene formato válido','#C0392B'); return; }
   if(pass.length < 6){ toast('La contraseña debe tener al menos 6 caracteres','#C0392B'); return; }
+  // SHA-256 antes de guardar
+  const passBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pass));
+  const passHash = Array.from(new Uint8Array(passBuffer)).map(b=>b.toString(16).padStart(2,'0')).join('');
   try {
     const res = await fetch(SUPABASE_URL + '/rest/v1/docentes', {
       method: 'POST',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
       body: JSON.stringify({
-        nombre, correo, password_hash: pass, modalidad, especialidad, plan,
+        nombre, correo, password_hash: passHash, modalidad, especialidad, plan,
         activo: true, fecha_vence: vence||null, rol: 'docente',
         tipo_concurso: (document.getElementById('nd-concurso')||{value:'nombramiento'}).value||'nombramiento',
         simulacros_disponibles: {'Basico':4,'Completo':6,'Premium':999}[plan]||4,
