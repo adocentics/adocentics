@@ -1146,6 +1146,7 @@ function _cargarSesionEnUI(docente) {
   if(bloqueAdmin) bloqueAdmin.style.display = docente.rol === 'admin' ? 'block' : 'none';
   // Mostrar bloque ascenso solo si el docente tiene ese concurso
   const esAscenso = (docente.tipo_concurso||'nombramiento') === 'ascenso' || docente.rol === 'admin';
+  ['sb-asc','sb-concurso-asc'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.style.display = esAscenso ? '' : 'none';
   });
@@ -3558,7 +3559,7 @@ async function renderSelectorExamenesPDF(){
     <div style="font-size:14px;color:var(--gris);margin-bottom:8px">Resuelve exámenes oficiales con hoja de respuestas interactiva</div>
     <div style="background:#EBF5FF;border:1.5px solid #3498DB;border-radius:8px;padding:10px 16px;font-size:12px;color:#1A5E8A;margin-bottom:24px">
       📌 Plan <strong>${plan}</strong> — Exámenes pasados: ✅ Ilimitados · Exámenes nuevos: ${limiteNuevos===0?'❌ No incluido':'✅ '+limiteNuevos+' por mes'}
-      ${limiteNuevos===0?'<a onclick="irA('planes')" style="cursor:pointer" style="color:var(--azul);margin-left:8px;font-weight:600">Actualizar plan →</a>':''}
+      ${limiteNuevos===0?'<span onclick="irA(\'planes\')" style="cursor:pointer;color:var(--azul);margin-left:8px;font-weight:600">Actualizar plan →</span>':''}
     </div>
     <div id="lista-examenes-pdf">Cargando exámenes...</div>`;
 
