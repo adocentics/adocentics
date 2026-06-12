@@ -799,7 +799,13 @@ html, body {
       <button class="ni" onclick="irA('historial')"><span class="ni-ico">📊</span> Mi historial</button>
       <button class="ni" onclick="irA('progreso')"><span class="ni-ico">📈</span> Mi progreso</button>
 
-      <button class="ni" onclick="irA('examen-pdf')"><span class="ni-ico">📋</span> Exámenes reales</button>
+      <!-- Sección Ascenso — oculta por defecto, visible solo si tipo_concurso=ascenso o admin -->
+      <div id="sb-asc" style="display:none">
+        <div class="sb-sec" id="sb-concurso-asc">ASCENSO DE ESCALA</div>
+        <button class="ni" onclick="irA('examen-pdf')"><span class="ni-ico">📋</span> Exámenes reales</button>
+        <button class="ni" onclick="irA('historial')"><span class="ni-ico">📊</span> Mi historial</button>
+        <button class="ni" onclick="irA('progreso')"><span class="ni-ico">📈</span> Mi progreso</button>
+      </div>
 
       <div class="sb-sec">RECURSOS</div>
       <button class="ni" onclick="irA('materiales')"><span class="ni-ico">📂</span> Materiales MINEDU</button>
