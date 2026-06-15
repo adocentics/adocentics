@@ -1246,7 +1246,7 @@ async function _cargarStatsDashboard(){
   try {
     const hoy = new Date();
     const ini = new Date(hoy.getFullYear(),hoy.getMonth(),1).toISOString();
-    const res = await fetch(SUPABASE_URL+'/rest/v1/simulacros_historial?docente_id=eq.'+d.id+'&creado_en=gte.'+ini+'&select=puntaje,maximo',{
+    const res = await fetch(SUPABASE_URL+'/rest/v1/simulacros_historial?docente_id=eq.'+d.id+'&creado_en=gte.'+ini+'&select=puntaje:puntuaci%C3%B3n,maximo:m%C3%A1ximo',{
       headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
     });
     const data = await res.json();
@@ -1265,7 +1265,7 @@ async function _cargarStatsDashboard(){
 
 async function _cargarUltimosSims(docenteId){
   try {
-    const res = await fetch(SUPABASE_URL+'/rest/v1/simulacros_historial?docente_id=eq.'+docenteId+'&order=creado_en.desc&limit=4',{
+    const res = await fetch(SUPABASE_URL+'/rest/v1/simulacros_historial?docente_id=eq.'+docenteId+'&order=creado_en.desc&limit=4&select=*,puntaje:puntuaci%C3%B3n,maximo:m%C3%A1ximo',{
       headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
     });
     const data = await res.json();
@@ -1683,7 +1683,7 @@ function mostrarResultado(){
           nombre, concurso: estado.concurso==='asc'?'ascenso':'nombramiento',
           modo: document.getElementById('modo-sim')?.value||'completo',
           grupo_id: g?.id||null,
-          puntaje: pts, maximo: max,
+          "puntuación": pts, "máximo": max,
           total_preguntas: estado.preguntas.length,
           correctas,
           subprueba_hg_puntaje: hgPts||null,
@@ -3010,7 +3010,7 @@ async function renderHistorial(){
   try {
     let items = '';
     if(doc && doc.id){
-      const res = await fetch(SUPABASE_URL+'/rest/v1/simulacros_historial?docente_id=eq.'+doc.id+'&order=creado_en.desc&limit=50',{
+      const res = await fetch(SUPABASE_URL+'/rest/v1/simulacros_historial?docente_id=eq.'+doc.id+'&order=creado_en.desc&limit=50&select=*,puntaje:puntuaci%C3%B3n,maximo:m%C3%A1ximo',{
         headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
       });
       const data = await res.json();
@@ -3050,7 +3050,7 @@ async function renderHistorial(){
         ? '<div style="text-align:center;padding:40px;color:var(--gris)">Aún no has realizado simulacros.</div>'
         : hist.slice().reverse().map(h=>{
             const ptColor=h.puntaje>=110?'var(--verde)':h.puntaje>=80?'var(--dorado)':'var(--rojo)';
-            return `<div class="hist-item"><div class="hist-izq"><div class="hist-ico">📐</div><div><div class="hist-nombre">${h.nombre}</div><div class="hist-meta">${h.fecha}</div></div></div><div><div class="hist-ptj" style="color:${ptColor}">${h.puntaje}</div><div style="font-size:10px;color:var(--gris)">/${h.maximo} pts</div></div></div>`;
+            return `<div class="hist-item"><div class="hist-izq"><div class="hist-ico">📐</div><div><div class="hist-nombre">${h.nombre}</div><div class="hist-meta">${new Date(h.creado_en).toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'})}</div></div></div><div><div class="hist-ptj" style="color:${ptColor}">${h.puntaje}</div><div style="font-size:10px;color:var(--gris)">/${h.maximo} pts</div></div></div>`;
           }).join('');
     }
     if(document.getElementById('hist-lista')) document.getElementById('hist-lista').innerHTML=items;
@@ -3080,7 +3080,7 @@ async function renderProgreso(){
 
   try {
     if(!doc||!doc.id){ renderProgresoVacio(); return; }
-    const res = await fetch(SUPABASE_URL+'/rest/v1/simulacros_historial?docente_id=eq.'+doc.id+'&order=creado_en.desc&limit=100',{
+    const res = await fetch(SUPABASE_URL+'/rest/v1/simulacros_historial?docente_id=eq.'+doc.id+'&order=creado_en.desc&limit=100&select=*,puntaje:puntuaci%C3%B3n,maximo:m%C3%A1ximo',{
       headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
     });
     const data = await res.json();
@@ -3269,7 +3269,7 @@ async function renderRanking(){
     // Obtener top 20 mejores puntajes del mes
     const hace30 = new Date(); hace30.setDate(hace30.getDate()-30);
     const res = await fetch(
-      SUPABASE_URL+'/rest/v1/simulacros_historial?select=docente_id,puntaje,maximo,nombre,docentes(nombre,especialidad,modalidad)&order=puntaje.desc&limit=50&creado_en=gte.'+hace30.toISOString(),
+      SUPABASE_URL+'/rest/v1/simulacros_historial?select=docente_id,puntaje:puntuaci%C3%B3n,maximo:m%C3%A1ximo,nombre,docentes(nombre,especialidad,modalidad)&order=puntuaci%C3%B3n.desc&limit=50&creado_en=gte.'+hace30.toISOString(),
       {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}}
     );
     const data = await res.json();
@@ -3741,8 +3741,8 @@ function mostrarResultadosPDF(correctas, total, puntaje){
         nombre: e.titulo,
         concurso: e.concurso,
         modo: e.tipo_examen==='nuevo' ? 'examen_pdf_nuevo' : 'examen_pdf',
-        puntaje,
-        maximo: 200,
+        "puntuación": puntaje,
+        "máximo": 200,
         total_preguntas: total,
         correctas,
         grupo_id: null
