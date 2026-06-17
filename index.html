@@ -498,6 +498,11 @@ html, body {
   table{min-width:420px}
 }
 
+@keyframes pulse {
+  0%,100%{opacity:1}
+  50%{opacity:0.4}
+}
+
 /* ── RESPONSIVE COMPLEMENTARIO ── */
 @media(max-width:768px){
   /* Hero card oculta en mobile — el login se hace desde loginapp */
@@ -3636,6 +3641,8 @@ async function renderSelectorExamenesPDF(){
 
 let _examenPDFActual = null;
 let _respuestasDocente = {};
+let _cronometroInterval = null;
+let _segundosRestantes = 0;
 
 async function iniciarSimulacroPDF(examenId){
   const res = await fetch(SUPABASE_URL+'/rest/v1/examenes_pdf?id=eq.'+examenId+'&select=*',
@@ -3644,7 +3651,22 @@ async function iniciarSimulacroPDF(examenId){
   if(!data||!data[0]){ toast('Error cargando examen','#C0392B'); return; }
   _examenPDFActual = data[0];
   _respuestasDocente = {};
+  // Iniciar cronómetro (duracion_minutos del examen, por defecto 90)
+  // Nombramiento: 3h45m = 225min | Ascenso: 3h = 180min | Default: 225min
+  const duracionDefault = (_examenPDFActual.concurso||'').toLowerCase().includes('ascenso') ? 180 : 225;
+  const minutos = _examenPDFActual.duracion_minutos || duracionDefault;
+  _segundosRestantes = minutos * 60;
+  if(_cronometroInterval) clearInterval(_cronometroInterval);
   renderSimulacroPDF();
+  _cronometroInterval = setInterval(()=>{
+    _segundosRestantes--;
+    actualizarCronometro();
+    if(_segundosRestantes <= 0){
+      clearInterval(_cronometroInterval);
+      toast('⏰ Tiempo agotado — entregando examen automáticamente','#E67E22');
+      setTimeout(()=>entregarSimulacroPDF(), 1500);
+    }
+  }, 1000);
 }
 
 function renderSimulacroPDF(){
@@ -3668,7 +3690,16 @@ function renderSimulacroPDF(){
           </div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:10px">
+      <div style="display:flex;align-items:center;gap:18px">
+        <!-- Cronómetro -->
+        <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:10px;padding:8px 14px">
+          <span style="font-size:16px">⏱️</span>
+          <div style="text-align:center">
+            <div style="font-size:10px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:.5px">Tiempo</div>
+            <div id="pdf-cronometro" style="font-size:18px;font-weight:800;color:#fff;font-family:monospace;letter-spacing:1px">${(()=>{const d=e.duracion_minutos||(((e.concurso||'').toLowerCase().includes('ascenso'))?180:225);const h=Math.floor(d/60);const m=d%60;return h>0?h+':'+String(m).padStart(2,'0')+':00':String(m).padStart(2,'0')+':00';})()}</div>
+          </div>
+        </div>
+        <!-- Respondidas -->
         <div style="text-align:right">
           <div style="font-size:10px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:.5px">Respondidas</div>
           <div style="font-size:18px;font-weight:800;color:#fff"><span id="pdf-resp-count">0</span><span style="font-size:12px;color:rgba(255,255,255,0.5)"> / ${total}</span></div>
@@ -3729,6 +3760,32 @@ function renderSimulacroPDF(){
     </div>`;
 }
 
+function actualizarCronometro(){
+  const el = document.getElementById('pdf-cronometro');
+  if(!el) return;
+  const h = Math.floor(_segundosRestantes / 3600);
+  const m = Math.floor((_segundosRestantes % 3600) / 60);
+  const s = _segundosRestantes % 60;
+  // Mostrar H:MM:SS si hay horas, MM:SS si no
+  if(h > 0){
+    el.textContent = h+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  } else {
+    el.textContent = String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  }
+  // Amarillo: menos de 15 minutos
+  if(_segundosRestantes <= 900 && _segundosRestantes > 300){
+    el.style.color = '#F39C12';
+    el.style.animation = '';
+  // Rojo parpadeante: menos de 5 minutos
+  } else if(_segundosRestantes <= 300){
+    el.style.color = '#E74C3C';
+    el.style.animation = 'pulse 1s infinite';
+  } else {
+    el.style.color = '#fff';
+    el.style.animation = '';
+  }
+}
+
 function marcarRespuestaPDF(num, alt){
   const alts = _examenPDFActual.alternativas===3 ? ['A','B','C'] : ['A','B','C','D'];
   _respuestasDocente[num] = alt;
@@ -3749,6 +3806,7 @@ function marcarRespuestaPDF(num, alt){
 }
 
 function entregarSimulacroPDF(){
+  if(_cronometroInterval){ clearInterval(_cronometroInterval); _cronometroInterval = null; }
   const e = _examenPDFActual;
   const total = e.total_preguntas;
   const respondidas = Object.keys(_respuestasDocente).length;
