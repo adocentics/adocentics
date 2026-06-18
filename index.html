@@ -3358,7 +3358,8 @@ async function renderAdminExamenes(){
           <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">ALTERNATIVAS</label><select id="exam-alts" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"><option value="4">4 (A B C D)</option><option value="3">3 (A B C)</option></select></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">PDF DEL EXAMEN (sin respuestas)</label><input id="exam-pdf-file" type="file" accept=".pdf" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"></div>
+          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">PDF DEL EXAMEN <span style="font-weight:400">(PDF único ó PDF de HG si viene separado)</span></label><input id="exam-pdf-file" type="file" accept=".pdf" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"></div>
+          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">PDF ESPECIALIDAD <span style="font-weight:400">(opcional — solo si viene separado)</span></label><input id="exam-pdf-esp-file" type="file" accept=".pdf" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"></div>
           <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">PDF DE RESPUESTAS DESARROLLADAS</label><input id="exam-resp-file" type="file" accept=".pdf" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"></div>
         </div>
         <div style="margin-bottom:16px">
@@ -3388,6 +3389,7 @@ function mostrarFormNuevoExamen(){
   document.getElementById('exam-alts').value='4';
   document.getElementById('exam-clave').value='';
   document.getElementById('exam-upload-status').textContent='';
+  if(document.getElementById('exam-pdf-esp-file')) document.getElementById('exam-pdf-esp-file').value='';
 }
 
 async function subirPDFStorage(file, path){
@@ -3413,6 +3415,7 @@ async function guardarExamen(){
   const alts     = parseInt(document.getElementById('exam-alts').value)||4;
   const claveRaw = document.getElementById('exam-clave').value.trim();
   const pdfFile  = document.getElementById('exam-pdf-file').files[0];
+  const pdfEspFile = document.getElementById('exam-pdf-esp-file')?.files[0];
   const respFile = document.getElementById('exam-resp-file').files[0];
   const status   = document.getElementById('exam-upload-status');
 
@@ -3439,6 +3442,10 @@ async function guardarExamen(){
     if(pdfFile){
       status.textContent='⏳ Subiendo PDF del examen...';
       payload.pdf_examen_url = await subirPDFStorage(pdfFile, `examenes/${slug}.pdf`);
+    }
+    if(pdfEspFile){
+      status.textContent='⏳ Subiendo PDF de especialidad...';
+      payload.pdf_especialidad_url = await subirPDFStorage(pdfEspFile, `examenes/${slug}_esp.pdf`);
     }
     if(respFile){
       status.textContent='⏳ Subiendo PDF de respuestas...';
@@ -3540,6 +3547,12 @@ async function editarExamen(id){
     const lineas = Object.entries(e.respuestas).sort((a,b)=>parseInt(a[0])-parseInt(b[0])).map(([n,r])=>n+'-'+r).join('\n');
     document.getElementById('exam-clave').value=lineas;
   }
+  // Indicar si ya hay PDF de especialidad subido
+  const espLabel = document.querySelector('label[for="exam-pdf-esp-file"]') || Array.from(document.querySelectorAll('label')).find(l=>l.textContent.includes('PDF ESPECIALIDAD'));
+  if(espLabel){
+    espLabel.innerHTML = 'PDF ESPECIALIDAD <span style="font-weight:400">(opcional — solo si viene separado)</span>'
+      + (e.pdf_especialidad_url ? ' <span style="color:#1A7A4A;font-size:10px">✅ Ya subido</span>' : '');
+  }
   document.getElementById('form-nuevo-examen').scrollIntoView({behavior:'smooth'});
 }
 
@@ -3579,7 +3592,7 @@ async function renderSelectorExamenesPDF(){
 
   try{
     let url = SUPABASE_URL+'/rest/v1/examenes_pdf?activo=eq.true&order=anio.desc';
-    if(esp && !esAdmin) url += '&especialidad=eq.'+encodeURIComponent(esp);
+    if(esp && !esAdmin) url += '&or=(especialidad.eq.'+encodeURIComponent(esp)+',especialidad.is.null)';
     const res = await fetch(url,{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
     const data = await res.json();
     const el = document.getElementById('lista-examenes-pdf');
@@ -3710,25 +3723,45 @@ function renderSimulacroPDF(){
     <div style="height:5px;background:rgba(0,0,0,0.15);border-radius:0">
       <div id="pdf-barra-prog" style="height:5px;background:linear-gradient(90deg,#3498db,#27ae60);width:0%;transition:width .4s ease"></div>
     </div>
-    <!-- Contenido principal -->
-    <div style="display:grid;grid-template-columns:1fr 400px;gap:0;height:calc(100vh - 220px);overflow:hidden;border-radius:0 0 14px 14px;box-shadow:0 4px 24px rgba(0,0,0,0.10)">
+    <!-- Contenido principal: responsive -->
+    <style>
+      @media(max-width:700px){
+        #sim-layout{display:flex!important;flex-direction:column!important;height:auto!important}
+        #sim-panel-pdf{display:none;height:60vh}
+        #sim-panel-resp{display:flex!important;flex:unset!important;height:auto!important;max-height:unset!important}
+        #sim-tabs-movil{display:flex!important}
+        .sim-tab-btn{flex:1;padding:10px;font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:var(--FC);background:#1a1a2e;color:rgba(255,255,255,0.5);border-bottom:3px solid transparent;transition:all .2s}
+        .sim-tab-btn.activo{color:#fff;border-bottom:3px solid #3498db;background:rgba(255,255,255,0.06)}
+      }
+    </style>
+    <!-- Tabs móvil (ocultos en desktop) -->
+    <div id="sim-tabs-movil" style="display:none;background:#1a1a2e">
+      <button class="sim-tab-btn activo" onclick="switchTabSim('pdf')">📄 ${e.pdf_especialidad_url ? 'Habilidades Gen.' : 'Examen PDF'}</button>
+      ${e.pdf_especialidad_url ? `<button class="sim-tab-btn" onclick="switchTabSim('esp')">📘 Especialidad</button>` : ''}
+      <button class="sim-tab-btn" onclick="switchTabSim('resp')">📝 Respuestas</button>
+    </div>
+    <div id="sim-layout" style="display:grid;grid-template-columns:1fr 400px;gap:0;height:calc(100vh - 220px);overflow:hidden;border-radius:0 0 14px 14px;box-shadow:0 4px 24px rgba(0,0,0,0.10)">
       <!-- PDF izquierda -->
-      <div style="display:flex;flex-direction:column;background:#1a1a2e;border-right:2px solid rgba(255,255,255,0.06)">
-        <div style="padding:10px 16px;background:rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.06)">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:11px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:.5px">Examen oficial MINEDU</span>
-          </div>
-          <span style="font-size:11px;color:rgba(255,255,255,0.4)" id="pdf-pag"></span>
-        </div>
-        <div style="flex:1;overflow:hidden">
+      <div id="sim-panel-pdf" style="display:flex;flex-direction:column;background:#1a1a2e;border-right:2px solid rgba(255,255,255,0.06)">
+        <!-- Pestañas HG / Especialidad (solo si hay 2 PDFs) -->
+        ${e.pdf_especialidad_url ? `
+        <div style="display:flex;background:rgba(0,0,0,0.2);border-bottom:1px solid rgba(255,255,255,0.08)">
+          <button id="tab-hg" onclick="switchPDF('hg')" style="flex:1;padding:10px 16px;font-size:12px;font-weight:700;border:none;cursor:pointer;font-family:var(--FC);background:rgba(52,152,219,0.25);color:#fff;border-bottom:3px solid #3498db;transition:all .2s">📄 Habilidades Generales</button>
+          <button id="tab-esp" onclick="switchPDF('esp')" style="flex:1;padding:10px 16px;font-size:12px;font-weight:700;border:none;cursor:pointer;font-family:var(--FC);background:transparent;color:rgba(255,255,255,0.45);border-bottom:3px solid transparent;transition:all .2s">📘 Especialidad</button>
+        </div>` : `
+        <div style="padding:10px 16px;background:rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.06)">
+          <span style="font-size:11px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:.5px">Examen oficial MINEDU</span>
+        </div>`}
+        <div style="flex:1;overflow:hidden" id="sim-iframe-wrap">
           ${e.pdf_examen_url
-            ? `<iframe src="${e.pdf_examen_url}#toolbar=0&navpanes=0&scrollbar=1" style="width:100%;height:100%;border:none;background:#1a1a2e"></iframe>`
+            ? `<iframe id="iframe-hg" src="${e.pdf_examen_url}#toolbar=0&navpanes=0&scrollbar=1" style="width:100%;height:100%;border:none;background:#1a1a2e"></iframe>
+               ${e.pdf_especialidad_url ? `<iframe id="iframe-esp" src="${e.pdf_especialidad_url}#toolbar=0&navpanes=0&scrollbar=1" style="width:100%;height:100%;border:none;background:#1a1a2e;display:none"></iframe>` : ''}`
             : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,0.3);gap:16px"><span style="font-size:48px">📄</span><span style="font-size:14px">PDF no disponible</span></div>`
           }
         </div>
       </div>
       <!-- Hoja de respuestas derecha -->
-      <div style="display:flex;flex-direction:column;min-height:0;overflow:hidden;background:#f5f7ff">
+      <div id="sim-panel-resp" style="display:flex;flex-direction:column;min-height:0;overflow:hidden;background:#f5f7ff">
         <div style="padding:14px 16px;background:#fff;border-bottom:2px solid #e8eaf5;display:flex;align-items:center;justify-content:space-between">
           <div>
             <div style="font-size:13px;font-weight:800;color:#1a2744;letter-spacing:-0.2px">📝 Hoja de respuestas</div>
@@ -3858,6 +3891,50 @@ function mostrarResultadosPDF(correctas, total, puntaje){
       ${e.pdf_respuestas_url?`<a href="${e.pdf_respuestas_url}" target="_blank" style="display:block;background:#E8F5E9;color:#1A6A3A;border:1.5px solid #1FAA72;padding:12px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;margin-bottom:12px">📥 Ver respuestas desarrolladas</a>`:''}
       <button onclick="irA('examen-pdf')" style="width:100%;background:var(--gc);color:var(--negro);border:1.5px solid var(--gm);padding:12px;border-radius:8px;font-size:14px;cursor:pointer;font-family:var(--FC)">← Volver a exámenes</button>
     </div>`;
+}
+
+
+// Alternar entre PDF de HG y Especialidad (desktop)
+function switchPDF(tab){
+  const iframeHG  = document.getElementById('iframe-hg');
+  const iframeEsp = document.getElementById('iframe-esp');
+  const tabHG     = document.getElementById('tab-hg');
+  const tabEsp    = document.getElementById('tab-esp');
+  if(!iframeHG || !iframeEsp) return;
+  const esHG = tab === 'hg';
+  iframeHG.style.display  = esHG ? 'block' : 'none';
+  iframeEsp.style.display = esHG ? 'none'  : 'block';
+  if(tabHG){
+    tabHG.style.background   = esHG ? 'rgba(52,152,219,0.25)' : 'transparent';
+    tabHG.style.color         = esHG ? '#fff' : 'rgba(255,255,255,0.45)';
+    tabHG.style.borderBottom  = esHG ? '3px solid #3498db' : '3px solid transparent';
+  }
+  if(tabEsp){
+    tabEsp.style.background  = !esHG ? 'rgba(52,152,219,0.25)' : 'transparent';
+    tabEsp.style.color        = !esHG ? '#fff' : 'rgba(255,255,255,0.45)';
+    tabEsp.style.borderBottom = !esHG ? '3px solid #3498db' : '3px solid transparent';
+  }
+}
+
+// Alternar entre PDF y hoja de respuestas en móvil
+function switchTabSim(tab){
+  const panelPDF  = document.getElementById('sim-panel-pdf');
+  const panelResp = document.getElementById('sim-panel-resp');
+  const tabs      = document.querySelectorAll('.sim-tab-btn');
+  tabs.forEach(b => b.classList.remove('activo'));
+  if(tab === 'resp'){
+    if(panelPDF)  panelPDF.style.display  = 'none';
+    if(panelResp) panelResp.style.display = 'flex';
+    tabs[tabs.length-1].classList.add('activo');
+  } else {
+    if(panelPDF)  panelPDF.style.display  = 'flex';
+    if(panelResp) panelResp.style.display = 'none';
+    const idx = tab === 'hg' ? 0 : 1;
+    if(tabs[idx]) tabs[idx].classList.add('activo');
+    // Si es tab de especialidad, mostrar el iframe correcto
+    if(tab === 'esp') switchPDF('esp');
+    else switchPDF('hg');
+  }
 }
 
 console.log('[DocentTics] ✅ Plataforma lista');
