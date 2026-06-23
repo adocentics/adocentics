@@ -3273,11 +3273,15 @@ async function renderRanking(){
   try {
     // Obtener top 20 mejores puntajes del mes
     const hace30 = new Date(); hace30.setDate(hace30.getDate()-30);
-    const res = await fetch(
-      SUPABASE_URL+'/rest/v1/simulacros_historial?select=docente_id,puntaje:puntuaci%C3%B3n,maximo:m%C3%A1ximo,nombre,docentes(nombre,especialidad,modalidad)&order=puntuaci%C3%B3n.desc&limit=50&creado_en=gte.'+hace30.toISOString(),
-      {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}}
-    );
-    const data = await res.json();
+    let data = [];
+    try {
+      const res = await fetch(
+        SUPABASE_URL+'/rest/v1/simulacros_historial?select=docente_id,puntaje:puntuaci%C3%B3n,maximo:m%C3%A1ximo,nombre,docentes(nombre,especialidad,modalidad)&order=puntuaci%C3%B3n.desc&limit=50&creado_en=gte.'+hace30.toISOString(),
+        {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}}
+      );
+      const raw = await res.json();
+      if(Array.isArray(raw)) data = raw;
+    } catch(fetchErr){ data = []; }
     if(!data||data.length===0){
       // Datos demo para video — quitar cuando haya docentes reales
       const demo = [
