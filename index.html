@@ -1251,13 +1251,13 @@ async function _cargarStatsDashboard(){
   try {
     const hoy = new Date();
     const ini = new Date(hoy.getFullYear(),hoy.getMonth(),1).toISOString();
-    const res = await fetch(SUPABASE_URL+'/rest/v1/simulacros_historial?docente_id=eq.'+d.id+'&creado_en=gte.'+ini+'&select=puntaje:puntuaci%C3%B3n,maximo:m%C3%A1ximo',{
+    const res = await fetch(SUPABASE_URL+'/rest/v1/simulacros_historial?docente_id=eq.'+d.id+'&creado_en=gte.'+ini+'&select=puntuaci%C3%B3n,m%C3%A1ximo',{
       headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
     });
     const data = await res.json();
     const total = data.length;
-    const mejor = total>0?Math.max(...data.map(h=>h.puntaje)):0;
-    const prom  = total>0?Math.round(data.reduce((a,h)=>a+h.puntaje,0)/total):0;
+    const mejor = total>0?Math.max(...data.map(h=>h["puntuación"]||h.puntaje||0)):0;
+    const prom  = total>0?Math.round(data.reduce((a,h)=>a+h["puntuación"]||h.puntaje||0,0)/total):0;
     const rest  = Math.max(0,(d.simulacros_disponibles??2)-(d.simulacros_usados??0));
     if(document.getElementById('dash-sims'))  document.getElementById('dash-sims').textContent=total||'0';
     if(document.getElementById('dash-mejor')) document.getElementById('dash-mejor').textContent=mejor||'—';
@@ -1270,7 +1270,7 @@ async function _cargarStatsDashboard(){
 
 async function _cargarUltimosSims(docenteId){
   try {
-    const res = await fetch(SUPABASE_URL+'/rest/v1/simulacros_historial?docente_id=eq.'+docenteId+'&order=creado_en.desc&limit=4&select=*,puntaje:puntuaci%C3%B3n,maximo:m%C3%A1ximo',{
+    const res = await fetch(SUPABASE_URL+'/rest/v1/simulacros_historial?docente_id=eq.'+docenteId+'&order=creado_en.desc&limit=4&select=*,puntuaci%C3%B3n,m%C3%A1ximo',{
       headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
     });
     const data = await res.json();
@@ -1281,7 +1281,7 @@ async function _cargarUltimosSims(docenteId){
       return;
     }
     el.innerHTML = data.map(h=>{
-      const ptColor = h.puntaje>=110?'var(--verde)':h.puntaje>=80?'var(--dorado)':'var(--rojo)';
+      const ptColor = h["puntuación"]||h.puntaje||0>=110?'var(--verde)':h["puntuación"]||h.puntaje||0>=80?'var(--dorado)':'var(--rojo)';
       const ico = h.concurso==='ascenso'?'🚀':'📐';
       const fecha = new Date(h.creado_en).toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'});
       return `<div class="hist-item">
@@ -1293,8 +1293,8 @@ async function _cargarUltimosSims(docenteId){
           </div>
         </div>
         <div>
-          <div class="hist-ptj" style="color:${ptColor}">${h.puntaje}</div>
-          <div style="font-size:10px;color:var(--gris)">/ ${h.maximo} pts</div>
+          <div class="hist-ptj" style="color:${ptColor}">${h["puntuación"]||h.puntaje||0}</div>
+          <div style="font-size:10px;color:var(--gris)">/ ${h["máximo"]||h.maximo||200} pts</div>
         </div>
       </div>`;
     }).join('');
@@ -3017,7 +3017,7 @@ async function renderHistorial(){
     if(doc && doc.id){
       let data = [];
       try {
-        const res = await fetch(SUPABASE_URL+'/rest/v1/simulacros_historial?docente_id=eq.'+doc.id+'&order=creado_en.desc&limit=50&select=*,puntaje:puntuaci%C3%B3n,maximo:m%C3%A1ximo',{
+        const res = await fetch(SUPABASE_URL+'/rest/v1/simulacros_historial?docente_id=eq.'+doc.id+'&order=creado_en.desc&limit=50&select=*,puntuaci%C3%B3n,m%C3%A1ximo',{
           headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
         });
         const raw = await res.json();
@@ -3035,9 +3035,9 @@ async function renderHistorial(){
           {nombre:'Nombramiento 2016 — Primaria',puntaje:134,maximo:200,correctas:67,concurso:'nombramiento',creado_en:new Date(ahora-30*86400000).toISOString(),subprueba_hg_puntaje:32,subprueba_esp_puntaje:102},
         ];
         items = demoHist.map(h=>{
-          const ptColor = h.puntaje>=110?'var(--verde)':h.puntaje>=80?'var(--dorado)':'var(--rojo)';
+          const ptColor = h["puntuación"]||h.puntaje||0>=110?'var(--verde)':h["puntuación"]||h.puntaje||0>=80?'var(--dorado)':'var(--rojo)';
           const fecha = new Date(h.creado_en).toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'});
-          const pct = Math.round((h.puntaje/h.maximo)*100);
+          const pct = Math.round((h["puntuación"]||h.puntaje||0/h["máximo"]||h.maximo||200)*100);
           const detalle = [h.subprueba_hg_puntaje!=null?`HG: ${h.subprueba_hg_puntaje}pts`:'', h.subprueba_esp_puntaje!=null?`Esp: ${h.subprueba_esp_puntaje}pts`:''].filter(Boolean).join(' · ');
           return `<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--gc);gap:12px">
             <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:0">
@@ -3051,18 +3051,18 @@ async function renderHistorial(){
               </div>
             </div>
             <div style="text-align:right;flex-shrink:0">
-              <div style="font-size:22px;font-weight:800;font-family:var(--FT);color:${ptColor}">${h.puntaje}</div>
-              <div style="font-size:10px;color:var(--gris)">de ${h.maximo} pts</div>
+              <div style="font-size:22px;font-weight:800;font-family:var(--FT);color:${ptColor}">${h["puntuación"]||h.puntaje||0}</div>
+              <div style="font-size:10px;color:var(--gris)">de ${h["máximo"]||h.maximo||200} pts</div>
               <div style="font-size:10px;color:var(--gris)">${h.correctas} correctas</div>
             </div>
           </div>`;
         }).join('');
       } else {
         items = data.map(h=>{
-          const ptColor = h.puntaje>=110?'var(--verde)':h.puntaje>=80?'var(--dorado)':'var(--rojo)';
+          const ptColor = h["puntuación"]||h.puntaje||0>=110?'var(--verde)':h["puntuación"]||h.puntaje||0>=80?'var(--dorado)':'var(--rojo)';
           const ico = h.concurso==='ascenso'?'🚀':'📐';
           const fecha = new Date(h.creado_en).toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'});
-          const pct = Math.round((h.puntaje/h.maximo)*100);
+          const pct = Math.round((h["puntuación"]||h.puntaje||0/h["máximo"]||h.maximo||200)*100);
           const detalle = [h.subprueba_hg_puntaje!=null?`HG: ${h.subprueba_hg_puntaje}pts`:'', h.subprueba_esp_puntaje!=null?`Esp: ${h.subprueba_esp_puntaje}pts`:''].filter(Boolean).join(' · ');
           return `<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--gc);gap:12px">
             <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:0">
@@ -3076,8 +3076,8 @@ async function renderHistorial(){
               </div>
             </div>
             <div style="text-align:right;flex-shrink:0">
-              <div style="font-size:22px;font-weight:800;font-family:var(--FT);color:${ptColor}">${h.puntaje}</div>
-              <div style="font-size:10px;color:var(--gris)">de ${h.maximo} pts</div>
+              <div style="font-size:22px;font-weight:800;font-family:var(--FT);color:${ptColor}">${h["puntuación"]||h.puntaje||0}</div>
+              <div style="font-size:10px;color:var(--gris)">de ${h["máximo"]||h.maximo||200} pts</div>
               <div style="font-size:10px;color:var(--gris)">${h.correctas||0} correctas</div>
             </div>
           </div>`;
@@ -3090,8 +3090,8 @@ async function renderHistorial(){
       items = hist.length===0
         ? '<div style="text-align:center;padding:40px;color:var(--gris)">Aún no has realizado simulacros.</div>'
         : hist.slice().reverse().map(h=>{
-            const ptColor=h.puntaje>=110?'var(--verde)':h.puntaje>=80?'var(--dorado)':'var(--rojo)';
-            return `<div class="hist-item"><div class="hist-izq"><div class="hist-ico">📐</div><div><div class="hist-nombre">${h.nombre}</div><div class="hist-meta">${new Date(h.creado_en).toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'})}</div></div></div><div><div class="hist-ptj" style="color:${ptColor}">${h.puntaje}</div><div style="font-size:10px;color:var(--gris)">/${h.maximo} pts</div></div></div>`;
+            const ptColor=h["puntuación"]||h.puntaje||0>=110?'var(--verde)':h["puntuación"]||h.puntaje||0>=80?'var(--dorado)':'var(--rojo)';
+            return `<div class="hist-item"><div class="hist-izq"><div class="hist-ico">📐</div><div><div class="hist-nombre">${h.nombre}</div><div class="hist-meta">${new Date(h.creado_en).toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'})}</div></div></div><div><div class="hist-ptj" style="color:${ptColor}">${h["puntuación"]||h.puntaje||0}</div><div style="font-size:10px;color:var(--gris)">/${h["máximo"]||h.maximo||200} pts</div></div></div>`;
           }).join('');
     }
     if(document.getElementById('hist-lista')) document.getElementById('hist-lista').innerHTML=items;
@@ -3121,7 +3121,7 @@ async function renderProgreso(){
 
   try {
     if(!doc||!doc.id){ renderProgresoVacio(); return; }
-    const res = await fetch(SUPABASE_URL+'/rest/v1/simulacros_historial?docente_id=eq.'+doc.id+'&order=creado_en.desc&limit=100&select=*,puntaje:puntuaci%C3%B3n,maximo:m%C3%A1ximo',{
+    const res = await fetch(SUPABASE_URL+'/rest/v1/simulacros_historial?docente_id=eq.'+doc.id+'&order=creado_en.desc&limit=100&select=*,puntuaci%C3%B3n,m%C3%A1ximo',{
       headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
     });
     const data = await res.json();
@@ -3129,9 +3129,9 @@ async function renderProgreso(){
 
     // Stats generales
     const total = data.length;
-    const aprobados = data.filter(h=>h.puntaje>=110).length;
-    const mejorPtj = Math.max(...data.map(h=>h.puntaje));
-    const promedio = Math.round(data.reduce((a,h)=>a+h.puntaje,0)/total);
+    const aprobados = data.filter(h=>h["puntuación"]||h.puntaje||0>=110).length;
+    const mejorPtj = Math.max(...data.map(h=>h["puntuación"]||h.puntaje||0));
+    const promedio = Math.round(data.reduce((a,h)=>a+h["puntuación"]||h.puntaje||0,0)/total);
     const ultimoMes = data.filter(h=>{ const d=new Date(h.creado_en); const hoy=new Date(); return (hoy-d)<30*24*60*60*1000; }).length;
 
     // HG stats
@@ -3149,10 +3149,10 @@ async function renderProgreso(){
     // Tendencia últimos 5
     const ultimos5 = data.slice(0,5).reverse();
     const tendencia = ultimos5.map((h,i)=>{
-      const pct = Math.round((h.puntaje/h.maximo)*100);
-      const color = h.puntaje>=110?'var(--verde)':h.puntaje>=80?'var(--dorado)':'var(--rojo)';
+      const pct = Math.round((h["puntuación"]||h.puntaje||0/h["máximo"]||h.maximo||200)*100);
+      const color = h["puntuación"]||h.puntaje||0>=110?'var(--verde)':h["puntuación"]||h.puntaje||0>=80?'var(--dorado)':'var(--rojo)';
       return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
-        <div style="font-size:11px;font-weight:600;color:${color}">${h.puntaje}</div>
+        <div style="font-size:11px;font-weight:600;color:${color}">${h["puntuación"]||h.puntaje||0}</div>
         <div style="width:28px;border-radius:3px 3px 0 0;background:${color};height:${Math.max(8,pct*0.6)}px"></div>
         <div style="font-size:9px;color:var(--gris)">${new Date(h.creado_en).toLocaleDateString('es-PE',{day:'2-digit',month:'2-digit'})}</div>
       </div>`;
@@ -3312,7 +3312,7 @@ async function renderRanking(){
     let data = [];
     try {
       const res = await fetch(
-        SUPABASE_URL+'/rest/v1/simulacros_historial?select=docente_id,puntaje:puntuaci%C3%B3n,maximo:m%C3%A1ximo,nombre,docentes(nombre,especialidad,modalidad)&order=puntuaci%C3%B3n.desc&limit=50&creado_en=gte.'+hace30.toISOString(),
+        SUPABASE_URL+'/rest/v1/simulacros_historial?select=docente_id,puntuaci%C3%B3n,m%C3%A1ximo,nombre,docentes(nombre,especialidad,modalidad)&order=puntuaci%C3%B3n.desc&limit=50&creado_en=gte.'+hace30.toISOString(),
         {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}}
       );
       const raw = await res.json();
@@ -3338,14 +3338,14 @@ async function renderRanking(){
       </tr></thead><tbody>`;
       demo.forEach((h,i)=>{
         const nombre = h.docentes.nombre.split(' ').slice(0,2).join(' ');
-        const pct = Math.round((h.puntaje/h.maximo)*100);
-        const ptColor = h.puntaje>=110?'var(--verde)':h.puntaje>=80?'var(--dorado)':'var(--rojo)';
+        const pct = Math.round((h["puntuación"]||h.puntaje||0/h["máximo"]||h.maximo||200)*100);
+        const ptColor = h["puntuación"]||h.puntaje||0>=110?'var(--verde)':h["puntuación"]||h.puntaje||0>=80?'var(--dorado)':'var(--rojo)';
         html+=`<tr style="border-bottom:1px solid var(--gc)">
           <td style="padding:12px 14px;font-family:var(--FT);font-size:18px;font-weight:800;color:${i<3?'var(--dorado)':'var(--gris)'}">${i<3?medallas[i]:i+1}</td>
           <td style="padding:12px 14px;font-size:13px;color:var(--negro)">${nombre}</td>
           <td style="padding:12px 14px;font-size:12px;color:var(--gris)">${h.docentes.especialidad}</td>
-          <td style="padding:12px 14px;font-family:var(--FT);font-size:18px;font-weight:700;color:${ptColor}">${h.puntaje}</td>
-          <td style="padding:12px 14px;font-size:12px;color:var(--gris)">${h.maximo} pts</td>
+          <td style="padding:12px 14px;font-family:var(--FT);font-size:18px;font-weight:700;color:${ptColor}">${h["puntuación"]||h.puntaje||0}</td>
+          <td style="padding:12px 14px;font-size:12px;color:var(--gris)">${h["máximo"]||h.maximo||200} pts</td>
         </tr>`;
       });
       html+='</tbody></table>';
@@ -3355,7 +3355,7 @@ async function renderRanking(){
     // Deduplicar: mejor puntaje por docente
     const mejores = {};
     data.forEach(h=>{
-      if(!mejores[h.docente_id]||h.puntaje>mejores[h.docente_id].puntaje) mejores[h.docente_id]=h;
+      if(!mejores[h.docente_id]||h["puntuación"]||h.puntaje||0>mejores[h.docente_id].puntaje) mejores[h.docente_id]=h;
     });
     const top = Object.values(mejores).sort((a,b)=>b.puntaje-a.puntaje).slice(0,20);
     const miPos = doc ? top.findIndex(h=>h.docente_id===doc.id) : -1;
@@ -3367,14 +3367,14 @@ async function renderRanking(){
       const esYo = doc && h.docente_id===doc.id;
       const nombreDoc = h.docentes?.nombre ? h.docentes.nombre.split(' ').slice(0,2).join(' ') : 'Docente';
       const esp = h.docentes?.especialidad||'—';
-      const pct = Math.round((h.puntaje/h.maximo)*100);
-      const ptColor = h.puntaje>=110?'var(--verde)':h.puntaje>=80?'var(--dorado)':'var(--rojo)';
+      const pct = Math.round((h["puntuación"]||h.puntaje||0/h["máximo"]||h.maximo||200)*100);
+      const ptColor = h["puntuación"]||h.puntaje||0>=110?'var(--verde)':h["puntuación"]||h.puntaje||0>=80?'var(--dorado)':'var(--rojo)';
       html+=`<tr style="border-bottom:1px solid var(--gc);background:${esYo?'var(--celeste-c,#EBF5FF)':''}">
         <td style="padding:12px 14px;font-family:var(--FT);font-size:18px;font-weight:800;color:${i<3?'var(--dorado)':esYo?'var(--azul)':'var(--gris)'}">${i<3?medallas[i]:i+1}</td>
         <td style="padding:12px 14px;font-size:13px;font-weight:${esYo?'700':'400'};color:${esYo?'var(--azul)':'var(--negro)'}">${nombreDoc}${esYo?' (tú)':''}</td>
         <td style="padding:12px 14px;font-size:12px;color:var(--gris)">${esp}</td>
-        <td style="padding:12px 14px;font-family:var(--FT);font-size:18px;font-weight:700;color:${ptColor}">${h.puntaje}</td>
-        <td style="padding:12px 14px;font-size:12px;color:var(--gris)">${h.maximo} pts</td>
+        <td style="padding:12px 14px;font-family:var(--FT);font-size:18px;font-weight:700;color:${ptColor}">${h["puntuación"]||h.puntaje||0}</td>
+        <td style="padding:12px 14px;font-size:12px;color:var(--gris)">${h["máximo"]||h.maximo||200} pts</td>
       </tr>`;
     });
     html+='</tbody></table>';
