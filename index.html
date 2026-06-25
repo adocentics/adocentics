@@ -3428,12 +3428,26 @@ async function renderAdminExamenes(){
           <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">ALTERNATIVAS</label><select id="exam-alts" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"><option value="4">4 (A B C D)</option><option value="3">3 (A B C)</option></select></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">PDF DEL EXAMEN (sin respuestas)</label><input id="exam-pdf-file" type="file" accept=".pdf" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"></div>
+          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">PDF DEL EXAMEN <span style="font-weight:400">(PDF único ó HG si viene separado)</span></label><input id="exam-pdf-file" type="file" accept=".pdf" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"></div>
+          <div><label id="label-pdf-esp" style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">PDF ESPECIALIDAD <span style="font-weight:400">(opcional — solo si viene separado)</span></label><input id="exam-pdf-esp-file" type="file" accept=".pdf" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"></div>
           <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">PDF DE RESPUESTAS DESARROLLADAS</label><input id="exam-resp-file" type="file" accept=".pdf" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"></div>
         </div>
-        <div style="margin-bottom:16px">
-          <label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:8px">CLAVE DE RESPUESTAS <span style="font-weight:400;color:var(--gris)">(una por línea: 1-A, 2-C, 3-B...)</span></label>
-          <textarea id="exam-clave" rows="6" placeholder="1-A&#10;2-C&#10;3-B&#10;4-D&#10;..." style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none;resize:vertical;box-sizing:border-box;font-family:monospace"></textarea>
+        <div style="background:#EBF4FF;border:1.5px solid #B3D4F5;border-radius:10px;padding:14px;margin-bottom:16px">
+          <div style="font-size:11px;color:var(--azul);font-weight:700;letter-spacing:.4px;margin-bottom:10px">🔑 CLAVE DE RESPUESTAS — pega las letras separadas por espacio</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px">
+            <div>
+              <label style="font-size:11px;color:var(--gris);font-weight:600;display:block;margin-bottom:5px">HAB. GENERALES <span style="font-weight:400">(25 respuestas)</span></label>
+              <textarea id="exam-clave-hg" rows="3" placeholder="B A B C C A A B B C B C A B A C A B B C B C A A C" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:monospace;outline:none;resize:vertical;box-sizing:border-box;letter-spacing:2px"></textarea>
+              <div style="font-size:10px;color:var(--gris);margin-top:4px" id="hg-count">0 / 25 respuestas</div>
+            </div>
+            <div>
+              <label style="font-size:11px;color:var(--gris);font-weight:600;display:block;margin-bottom:5px">ESPECIALIDAD <span style="font-weight:400">(50 respuestas)</span></label>
+              <textarea id="exam-clave-esp" rows="3" placeholder="A D B C A B C D A B C A D B C A B C D A B A C D B A D C B A B C A D B C A B D C A B C D A B C D A B" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:monospace;outline:none;resize:vertical;box-sizing:border-box;letter-spacing:2px"></textarea>
+              <div style="font-size:10px;color:var(--gris);margin-top:4px" id="esp-count">0 / 50 respuestas</div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--gris);border-top:1px solid #B3D4F5;padding-top:8px">O si prefieres el formato clásico:</div>
+          <textarea id="exam-clave" rows="3" placeholder="1-A&#10;2-C&#10;3-B..." style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:12px;font-family:monospace;outline:none;resize:vertical;box-sizing:border-box;margin-top:6px"></textarea>
         </div>
         <div style="display:flex;gap:10px;align-items:center">
           <button onclick="guardarExamen()" style="background:var(--azul);color:#fff;border:none;padding:10px 24px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC)">Guardar examen</button>
@@ -3481,7 +3495,7 @@ async function guardarExamen(){
   const anio     = parseInt(document.getElementById('exam-anio').value)||null;
   const total    = parseInt(document.getElementById('exam-total').value)||75;
   const alts     = parseInt(document.getElementById('exam-alts').value)||4;
-  const claveRaw = document.getElementById('exam-clave').value.trim();
+  const claveRaw = combinarClavesHGESP() || document.getElementById('exam-clave').value.trim();
   const pdfFile  = document.getElementById('exam-pdf-file').files[0];
   const respFile = document.getElementById('exam-resp-file').files[0];
   const status   = document.getElementById('exam-upload-status');
@@ -3790,12 +3804,23 @@ function renderSimulacroPDF(){
           </div>
           <span style="font-size:11px;color:rgba(255,255,255,0.4)" id="pdf-pag"></span>
         </div>
-        <div style="flex:1;overflow:hidden">
-          ${e.pdf_examen_url
-            ? `<iframe src="${e.pdf_examen_url}#toolbar=0&navpanes=0&scrollbar=1" style="width:100%;height:100%;border:none;background:#1a1a2e"></iframe>`
-            : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,0.3);gap:16px"><span style="font-size:48px">📄</span><span style="font-size:14px">PDF no disponible</span></div>`
-          }
+        <div style="flex:1;overflow:hidden;position:relative">
+          ${e.pdf_examen_url ? `
+            <div id="pdf-loading" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a2e;z-index:10;gap:12px;transition:opacity .3s">
+              <div style="width:36px;height:36px;border:3px solid rgba(255,255,255,0.15);border-top-color:#3498db;border-radius:50%;animation:spin 1s linear infinite"></div>
+              <span style="color:rgba(255,255,255,0.5);font-size:12px">Cargando PDF...</span>
+              <a href="${e.pdf_examen_url}" target="_blank" id="pdf-fallback-btn" style="display:none;background:#3498db;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none">📄 Abrir en nueva pestaña</a>
+            </div>
+            <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+            <iframe src="${e.pdf_examen_url}#toolbar=0&navpanes=0&scrollbar=1" style="width:100%;height:100%;border:none;background:#1a1a2e"
+              onload="const l=document.getElementById('pdf-loading');if(l)l.style.display='none';"
+              onerror="const f=document.getElementById('pdf-fallback-btn');if(f)f.style.display='block';">
+            </iframe>
+          ` : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,0.3);gap:16px"><span style="font-size:48px">📄</span><span style="font-size:14px">PDF no disponible</span></div>`}
         </div>
+        ${e.pdf_examen_url ? `<div style="padding:6px 14px;background:rgba(0,0,0,0.25);display:flex;justify-content:flex-end">
+          <a href="${e.pdf_examen_url}" target="_blank" style="font-size:11px;color:rgba(255,255,255,0.5);text-decoration:none;padding:4px 10px;border-radius:5px;background:rgba(255,255,255,0.07)">⛶ Pantalla completa</a>
+        </div>` : ''}
       </div>
       <!-- Hoja de respuestas derecha -->
       <div style="display:flex;flex-direction:column;min-height:0;overflow:hidden;background:#f5f7ff">
@@ -3828,6 +3853,16 @@ function renderSimulacroPDF(){
         </div>
       </div>
     </div>`;
+  // Temporizador respaldo: si el PDF no carga en 8 seg, mostrar botón
+  setTimeout(()=>{
+    const loading = document.getElementById('pdf-loading');
+    const fallback = document.getElementById('pdf-fallback-btn');
+    if(loading && loading.style.display!=='none' && fallback){
+      fallback.style.display='block';
+      const span = loading.querySelector('span');
+      if(span) span.textContent='El PDF tardó en cargar. Ábrelo en una nueva pestaña:';
+    }
+  }, 8000);
 }
 
 function actualizarCronometro(){
@@ -3889,13 +3924,36 @@ function entregarSimulacroPDF(){
   for(let i=1;i<=total;i++){
     if(_respuestasDocente[i] && respCorrectas[i] && _respuestasDocente[i]===respCorrectas[i]) correctas++;
   }
-  const puntaje = Math.round((correctas/total)*200);
+  const puntaje = (() => {
+    const respCorrectas = e.respuestas || {};
+    let hg=0, esp=0;
+    for(let n=1; n<=total; n++){
+      if(_respuestasDocente[n] && respCorrectas[n] && _respuestasDocente[n]===respCorrectas[n]){
+        if(n<=25) hg+=2; else esp+=3;
+      }
+    }
+    return hg+esp;
+  })();
   mostrarResultadosPDF(correctas, total, puntaje);
 }
 
 function mostrarResultadosPDF(correctas, total, puntaje){
   const e = _examenPDFActual;
   const aprobado = puntaje >= 110;
+  // Calcular subpuntajes HG (preguntas 1-25, 2pts c/u) y Especialidad (26-75, 3pts c/u)
+  const respCorrectas = e.respuestas || {};
+  let hgPts=0, espPts=0;
+  for(let n=1; n<=total; n++){
+    if(_respuestasDocente[n] && respCorrectas[n] && _respuestasDocente[n]===respCorrectas[n]){
+      if(n<=25) hgPts += 2;
+      else espPts += 3;
+    }
+  }
+  // Si no hay clave cargada, estimar proporcional
+  if(hgPts===0 && espPts===0 && puntaje>0){
+    hgPts = Math.round(puntaje * 50/200);
+    espPts = puntaje - hgPts;
+  }
   // Guardar en historial
   const doc = getDocenteSesion();
   if(doc && doc.id){
@@ -3911,7 +3969,9 @@ function mostrarResultadosPDF(correctas, total, puntaje){
         "maximo": 200,
         total_preguntas: total,
         correctas,
-        grupo_id: null
+        grupo_id: null,
+        subprueba_hg_puntaje: hgPts||null,
+        subprueba_esp_puntaje: espPts||null
       })
     }).catch(err=>console.warn('No se pudo guardar historial PDF:',err));
   }
@@ -3921,13 +3981,50 @@ function mostrarResultadosPDF(correctas, total, puntaje){
       <div style="font-size:48px;margin-bottom:16px">${aprobado?'🎉':'📚'}</div>
       <div style="font-family:var(--FT);font-size:28px;font-weight:700;margin-bottom:8px">${puntaje} / 200</div>
       <div style="font-size:16px;color:${aprobado?'var(--verde)':'#C0392B'};font-weight:600;margin-bottom:24px">${aprobado?'¡Aprobado!':'Por mejorar'}</div>
-      <div style="background:var(--gc);border-radius:10px;padding:20px;margin-bottom:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;text-align:center">
+      <div style="background:var(--gc);border-radius:10px;padding:20px;margin-bottom:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px;text-align:center">
         <div><div style="font-size:24px;font-weight:700;color:var(--azul)">${correctas}</div><div style="font-size:12px;color:var(--gris)">CORRECTAS</div></div>
         <div><div style="font-size:24px;font-weight:700;color:#C0392B">${total-correctas}</div><div style="font-size:12px;color:var(--gris)">INCORRECTAS</div></div>
+      </div>
+      <div style="background:var(--gc);border-radius:10px;padding:16px;margin-bottom:24px;display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:center">
+        <div style="background:white;border-radius:8px;padding:12px;border-left:4px solid #E91E8C">
+          <div style="font-size:11px;font-weight:700;color:var(--gris);letter-spacing:.5px;margin-bottom:6px">🎯 HAB. GENERALES</div>
+          <div style="font-size:22px;font-weight:800;color:#E91E8C">${hgPts}</div>
+          <div style="font-size:10px;color:var(--gris)">de 50 pts</div>
+        </div>
+        <div style="background:white;border-radius:8px;padding:12px;border-left:4px solid #3498DB">
+          <div style="font-size:11px;font-weight:700;color:var(--gris);letter-spacing:.5px;margin-bottom:6px">📘 ESPECIALIDAD</div>
+          <div style="font-size:22px;font-weight:800;color:#3498DB">${espPts}</div>
+          <div style="font-size:10px;color:var(--gris)">de 150 pts</div>
+        </div>
       </div>
       ${e.pdf_respuestas_url?`<a href="${e.pdf_respuestas_url}" target="_blank" style="display:block;background:#E8F5E9;color:#1A6A3A;border:1.5px solid #1FAA72;padding:12px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;margin-bottom:12px">📥 Ver respuestas desarrolladas</a>`:''}
       <button onclick="irA('examen-pdf')" style="width:100%;background:var(--gc);color:var(--negro);border:1.5px solid var(--gm);padding:12px;border-radius:8px;font-size:14px;cursor:pointer;font-family:var(--FC)">← Volver a exámenes</button>
     </div>`;
+}
+
+// Contadores de clave HG y ESP
+document.addEventListener('input', function(e){
+  if(e.target.id==='exam-clave-hg'){
+    const letras = e.target.value.trim().split(/\s+/).filter(l=>l.match(/^[ABCDabcd]$/));
+    const c = document.getElementById('hg-count');
+    if(c){ c.textContent=letras.length+' / 25 respuestas'; c.style.color=letras.length===25?'var(--verde)':'var(--gris)'; }
+  }
+  if(e.target.id==='exam-clave-esp'){
+    const letras = e.target.value.trim().split(/\s+/).filter(l=>l.match(/^[ABCDabcd]$/));
+    const c = document.getElementById('esp-count');
+    if(c){ c.textContent=letras.length+' / 50 respuestas'; c.style.color=letras.length===50?'var(--verde)':'var(--gris)'; }
+  }
+});
+
+function combinarClavesHGESP(){
+  const hgRaw   = document.getElementById('exam-clave-hg')?.value.trim()||'';
+  const espRaw  = document.getElementById('exam-clave-esp')?.value.trim()||'';
+  const manual  = document.getElementById('exam-clave')?.value.trim()||'';
+  if(manual) return manual;
+  const hgLetras  = hgRaw.split(/\s+/).filter(l=>l.match(/^[ABCDabcd]$/)).map(l=>l.toUpperCase());
+  const espLetras = espRaw.split(/\s+/).filter(l=>l.match(/^[ABCDabcd]$/)).map(l=>l.toUpperCase());
+  if(!hgLetras.length && !espLetras.length) return '';
+  return [...hgLetras,...espLetras].map((l,i)=>`${i+1}-${l}`).join('\n');
 }
 
 console.log('[DocentTics] ✅ Plataforma lista');
