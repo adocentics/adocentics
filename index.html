@@ -1835,7 +1835,7 @@ function renderTablaAdmin(){
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           <button onclick="toggleActivo(${d.id},${!d.activo})" style="background:${d.activo?'var(--rojo-c)':'var(--vc)'};color:${d.activo?'var(--rojo)':'var(--verde)'};border:none;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--FC)">${d.activo?'Desactivar':'Activar'}</button>
           <button onclick="resetearPassword(${d.id})" style="background:#FFF3E0;color:#B7600B;border:none;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--FC)">🔑 Contraseña</button>
-          <button onclick="eliminarDocente(${d.id},${d.nombre},${d.rol==='admin'})" style="background:var(--gc);color:var(--gris);border:none;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--FC)">Eliminar</button>
+          <button onclick="eliminarDocente(${d.id},'${(d.nombre||'').replace(/'/g,"\\'")}',${d.rol==='admin'})" style="background:var(--gc);color:var(--gris);border:none;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--FC)">Eliminar</button>
         </div>
       </td>
     </tr>`;
@@ -1964,10 +1964,17 @@ async function eliminarDocente(id, nombre, esAdmin){
   if(esAdmin){ toast('⛔ No puedes eliminar al administrador.','#C0392B'); return; }
   if(!confirm('¿Eliminar a '+nombre+'? Esta acción no se puede deshacer.')) return;
   try {
-    await fetch(SUPABASE_URL + '/rest/v1/docentes?id=eq.'+id, {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/docentes?id=eq.'+id, {
       method: 'DELETE',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer':'return=representation' }
     });
+    if(!res.ok){ toast('Error al eliminar','#C0392B'); return; }
+    let borrados = [];
+    try{ borrados = await res.json(); }catch(e){ borrados = []; }
+    if(Array.isArray(borrados) && borrados.length===0){
+      toast('⚠️ No se eliminó — revisa permisos (RLS) en Supabase para docentes','#C0392B');
+      return;
+    }
     toast('🗑 Docente eliminado','#C0392B');
     cargarDocentes();
   } catch(e){ toast('Error','#C0392B'); }
