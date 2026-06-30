@@ -3772,6 +3772,7 @@ async function renderSelectorExamenesPDF(){
   try{
     let url = SUPABASE_URL+'/rest/v1/examenes_pdf?activo=eq.true&order=anio.desc';
     if(esp && !esAdmin) url += '&especialidad=eq.'+encodeURIComponent(esp);
+    if(!esAdmin) url += '&concurso=eq.'+encodeURIComponent((doc?.tipo_concurso||'nombramiento'));
     const res = await fetch(url,{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
     const data = await res.json();
     const el = document.getElementById('lista-examenes-pdf');
@@ -3833,6 +3834,7 @@ async function renderSelectorExamenesPDF(){
 
 let _examenPDFActual = null;
 let _respuestasDocente = {};
+let _marcadasRevision = {};
 let _cronometroInterval = null;
 let _segundosRestantes = 0;
 let _escalaAscenso = 2;
@@ -3844,6 +3846,7 @@ async function iniciarSimulacroPDF(examenId){
   if(!data||!data[0]){ toast('Error cargando examen','#C0392B'); return; }
   _examenPDFActual = data[0];
   _respuestasDocente = {};
+  _marcadasRevision = {};
   _escalaAscenso = 2;
   // Iniciar cronómetro (duracion_minutos del examen, por defecto 90)
   // Nombramiento: 3h45m = 225min | Ascenso: 3h = 180min | Default: 225min
@@ -3953,6 +3956,17 @@ function renderSimulacroPDF(){
           </div>
           <div style="background:#f0f4ff;border:1.5px solid #c8d4f0;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;color:#1a4a8a">${e.alternativas||4} alt.</div>
         </div>
+        <!-- Navegador de preguntas -->
+        <div style="padding:12px 16px;background:#fff;border-bottom:2px solid #e8eaf5">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;font-size:10px;color:#8892a4">
+            <span><span style="display:inline-block;width:9px;height:9px;border-radius:3px;background:#fff;border:1.5px solid #e8eaf5;vertical-align:middle;margin-right:4px"></span>Sin responder</span>
+            <span><span style="display:inline-block;width:9px;height:9px;border-radius:3px;background:var(--azul);vertical-align:middle;margin-right:4px"></span>Respondida</span>
+            <span><span style="display:inline-block;width:9px;height:9px;border-radius:3px;background:#fff;border:1.5px solid #E67E22;vertical-align:middle;margin-right:4px"></span>Marcada</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(30px,1fr));gap:5px;max-height:108px;overflow-y:auto" id="nav-pdf-grid">
+            ${Array.from({length:total},(_,i)=>`<button onclick="irAPreguntaPDF(${i+1})" id="nav-pdf-${i+1}" style="width:30px;height:30px;border-radius:7px;border:1.5px solid #e8eaf5;background:#fff;color:#5a6a8a;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--FC)">${i+1}</button>`).join('')}
+          </div>
+        </div>
         <div style="flex:1;overflow-y:auto;padding:14px;min-height:0;display:flex;flex-direction:column;gap:8px" id="hoja-respuestas">
           ${Array.from({length:total},(_,i)=>`
             <div style="background:#fff;border:2px solid #e8eaf5;border-radius:12px;padding:12px 14px;transition:all .2s;box-shadow:0 1px 4px rgba(0,0,0,0.04)" id="preg-pdf-${i+1}">
@@ -3961,7 +3975,10 @@ function renderSimulacroPDF(){
                   <div style="width:26px;height:26px;background:linear-gradient(135deg,#1a4a8a,#2980b9);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff">${i+1}</div>
                   <span style="font-size:12px;font-weight:700;color:#2c3e50">Pregunta ${i+1}</span>
                 </div>
-                <span style="font-size:10px;color:#b0b8c8;background:#f5f7ff;padding:3px 10px;border-radius:20px;font-weight:600;border:1px solid #e8eaf5" id="estado-pdf-${i+1}">Sin responder</span>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <button onclick="toggleMarcarRevisionPDF(${i+1})" id="flag-pdf-${i+1}" title="Marcar para revisar" style="background:none;border:none;cursor:pointer;font-size:14px;padding:2px;opacity:.35">🚩</button>
+                  <span style="font-size:10px;color:#b0b8c8;background:#f5f7ff;padding:3px 10px;border-radius:20px;font-weight:600;border:1px solid #e8eaf5" id="estado-pdf-${i+1}">Sin responder</span>
+                </div>
               </div>
               <div style="display:flex;gap:6px">
                 ${alts.map(a=>`<button onclick="marcarRespuestaPDF(${i+1},'${a}')" id="btn-pdf-${i+1}-${a}" style="flex:1;border:2px solid #e8eaf5;border-radius:9px;padding:11px 4px;font-size:14px;font-weight:800;cursor:pointer;background:#fff;font-family:var(--FC);transition:all .15s;color:#5a6a8a;letter-spacing:0">${a}</button>`).join('')}
@@ -4030,6 +4047,32 @@ function marcarRespuestaPDF(num, alt){
   // Actualizar contador
   const count = document.getElementById('pdf-resp-count');
   if(count) count.textContent=Object.keys(_respuestasDocente).length+' / '+_examenPDFActual.total_preguntas;
+  actualizarNavPDF(num);
+}
+
+function actualizarNavPDF(num){
+  const cell = document.getElementById('nav-pdf-'+num);
+  if(!cell) return;
+  const respondida = !!_respuestasDocente[num];
+  const marcada = !!_marcadasRevision[num];
+  cell.style.background = respondida ? 'var(--azul)' : '#fff';
+  cell.style.color = respondida ? '#fff' : '#5a6a8a';
+  cell.style.borderColor = marcada ? '#E67E22' : '#e8eaf5';
+  cell.style.borderWidth = marcada ? '2px' : '1.5px';
+}
+
+function irAPreguntaPDF(num){
+  const card = document.getElementById('preg-pdf-'+num);
+  if(card) card.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function toggleMarcarRevisionPDF(num){
+  _marcadasRevision[num] = !_marcadasRevision[num];
+  const flag = document.getElementById('flag-pdf-'+num);
+  if(flag) flag.style.opacity = _marcadasRevision[num] ? '1' : '.35';
+  const card = document.getElementById('preg-pdf-'+num);
+  if(card) card.style.borderColor = _marcadasRevision[num] ? '#E67E22' : '#e8eaf5';
+  actualizarNavPDF(num);
 }
 
 function entregarSimulacroPDF(){
