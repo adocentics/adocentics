@@ -3435,7 +3435,7 @@ Examen Ascenso Matemática 2021|2021|ascenso|90|30|https://...pdf||DCBADCBA...(9
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
           <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">TÍTULO</label><input id="exam-titulo" type="text" placeholder="Ej: Nombramiento Primaria 2023" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none;box-sizing:border-box"></div>
           <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">ESPECIALIDAD</label><select id="exam-esp" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"><option value="">— General —</option><option value="primaria">Primaria</option><option value="inicial">Inicial</option><option value="matematica">Matemática</option><option value="comunicacion">Comunicación</option><option value="historia">Historia / CC.SS.</option><option value="ciencias">Ciencias / CTA</option><option value="ingles">Inglés</option><option value="arte">Arte</option><option value="religion">Religión</option><option value="ept">EPT</option><option value="computacion">Computación</option><option value="educacion_fisica">Educación Física</option><option value="especial">Educación Especial</option></select></div>
-          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">CONCURSO</label><select id="exam-concurso" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"><option value="nombramiento">📝 Nombramiento</option><option value="ascenso">🚀 Ascenso</option></select></div>
+          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">CONCURSO</label><select id="exam-concurso" onchange="aplicarDefaultsConcurso()" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"><option value="nombramiento">📝 Nombramiento</option><option value="ascenso">🚀 Ascenso</option></select></div>
           <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">TIPO DE EXAMEN</label><select id="exam-tipo" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"><option value="pasado">📁 Años pasados (todos los planes)</option><option value="nuevo">⭐ Nuevo PerúEduca/SIFODS (Completo y Premium)</option></select></div>
           <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">AÑO</label><input id="exam-anio" type="number" placeholder="2024" min="2010" max="2030" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none;box-sizing:border-box"></div>
           <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">N° PREGUNTAS</label><input id="exam-total" type="number" placeholder="75" min="1" max="120" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none;box-sizing:border-box"></div>
@@ -3475,6 +3475,21 @@ Examen Ascenso Matemática 2021|2021|ascenso|90|30|https://...pdf||DCBADCBA...(9
       <div id="tabla-examenes">Cargando exámenes...</div>
     </div>`;
   await cargarTablaExamenes();
+}
+
+function aplicarDefaultsConcurso(){
+  const concurso = document.getElementById('exam-concurso').value;
+  const total = parseInt(document.getElementById('exam-total').value)||75;
+  if(concurso==='ascenso'){
+    document.getElementById('exam-total').value = document.getElementById('exam-total').value || 60;
+    document.getElementById('exam-hg-total').value = document.getElementById('exam-total').value;
+    document.getElementById('exam-hg-pts').value = 1.5;
+    document.getElementById('exam-esp-pts').value = 0;
+  } else {
+    document.getElementById('exam-hg-total').value = 25;
+    document.getElementById('exam-hg-pts').value = 2;
+    document.getElementById('exam-esp-pts').value = 3;
+  }
 }
 
 function mostrarFormNuevoExamen(){
@@ -3820,6 +3835,7 @@ let _examenPDFActual = null;
 let _respuestasDocente = {};
 let _cronometroInterval = null;
 let _segundosRestantes = 0;
+let _escalaAscenso = 2;
 
 async function iniciarSimulacroPDF(examenId){
   const res = await fetch(SUPABASE_URL+'/rest/v1/examenes_pdf?id=eq.'+examenId+'&select=*',
@@ -3828,6 +3844,7 @@ async function iniciarSimulacroPDF(examenId){
   if(!data||!data[0]){ toast('Error cargando examen','#C0392B'); return; }
   _examenPDFActual = data[0];
   _respuestasDocente = {};
+  _escalaAscenso = 2;
   // Iniciar cronómetro (duracion_minutos del examen, por defecto 90)
   // Nombramiento: 3h45m = 225min | Ascenso: 3h = 180min | Default: 225min
   const duracionDefault = (_examenPDFActual.concurso||'').toLowerCase().includes('ascenso') ? 180 : 225;
@@ -3868,6 +3885,18 @@ function renderSimulacroPDF(){
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:18px">
+        ${(e.concurso||'').toLowerCase().includes('ascenso')?`
+        <div style="text-align:right">
+          <div style="font-size:10px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:.5px">Postulo a</div>
+          <select id="pdf-escala-ascenso" onchange="_escalaAscenso=parseInt(this.value)" style="background:rgba(255,255,255,0.1);color:#fff;border:1.5px solid rgba(255,255,255,0.2);border-radius:8px;padding:5px 8px;font-size:13px;font-family:var(--FC)">
+            <option value="2" ${_escalaAscenso===2?'selected':''}>2ª escala (54 pts)</option>
+            <option value="3" ${_escalaAscenso===3?'selected':''}>3ª escala (57 pts)</option>
+            <option value="4" ${_escalaAscenso===4?'selected':''}>4ª escala (60 pts)</option>
+            <option value="5" ${_escalaAscenso===5?'selected':''}>5ª escala (63 pts)</option>
+            <option value="6" ${_escalaAscenso===6?'selected':''}>6ª escala (66 pts)</option>
+            <option value="7" ${_escalaAscenso===7?'selected':''}>7ª escala (69 pts)</option>
+          </select>
+        </div>`:''}
         <!-- Cronómetro -->
         <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:10px;padding:8px 14px">
           <span style="font-size:16px">⏱️</span>
@@ -4042,7 +4071,10 @@ function mostrarResultadosPDF(correctas, total, puntaje){
   const maxHg = hgLimite * hgPts;
   const maxEsp = espTotal * espPts;
   const maxTotal = maxHg + maxEsp;
-  const aprobado = puntaje >= maxTotal*0.55;
+  const esAscenso = (e.concurso||'').toLowerCase().includes('ascenso');
+  const umbralesAscenso = {2:54,3:57,4:60,5:63,6:66,7:69};
+  const umbralAprobado = esAscenso ? (umbralesAscenso[_escalaAscenso]||54) : maxTotal*0.55;
+  const aprobado = puntaje >= umbralAprobado;
   // Calcular subpuntajes HG y Especialidad
   let hgPtsObt=0, espPtsObt=0;
   for(let n=1; n<=total; n++){
@@ -4082,11 +4114,13 @@ function mostrarResultadosPDF(correctas, total, puntaje){
     <div class="card" style="max-width:600px;margin:0 auto;text-align:center">
       <div style="font-size:48px;margin-bottom:16px">${aprobado?'🎉':'📚'}</div>
       <div style="font-family:var(--FT);font-size:28px;font-weight:700;margin-bottom:8px">${puntaje} / ${maxTotal}</div>
-      <div style="font-size:16px;color:${aprobado?'var(--verde)':'#C0392B'};font-weight:600;margin-bottom:24px">${aprobado?'¡Aprobado!':'Por mejorar'}</div>
+      <div style="font-size:16px;color:${aprobado?'var(--verde)':'#C0392B'};font-weight:600;margin-bottom:4px">${aprobado?'¡Aprobado!':'Por mejorar'}</div>
+      ${esAscenso?`<div style="font-size:12px;color:var(--gris);margin-bottom:20px">Postulando a la ${_escalaAscenso}ª escala — mínimo requerido: ${umbralAprobado} pts</div>`:`<div style="margin-bottom:24px"></div>`}
       <div style="background:var(--gc);border-radius:10px;padding:20px;margin-bottom:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px;text-align:center">
         <div><div style="font-size:24px;font-weight:700;color:var(--azul)">${correctas}</div><div style="font-size:12px;color:var(--gris)">CORRECTAS</div></div>
         <div><div style="font-size:24px;font-weight:700;color:#C0392B">${total-correctas}</div><div style="font-size:12px;color:var(--gris)">INCORRECTAS</div></div>
       </div>
+      ${esAscenso?'':`
       <div style="background:var(--gc);border-radius:10px;padding:16px;margin-bottom:24px;display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:center">
         <div style="background:white;border-radius:8px;padding:12px;border-left:4px solid #E91E8C">
           <div style="font-size:11px;font-weight:700;color:var(--gris);letter-spacing:.5px;margin-bottom:6px">🎯 HAB. GENERALES</div>
@@ -4098,7 +4132,7 @@ function mostrarResultadosPDF(correctas, total, puntaje){
           <div style="font-size:22px;font-weight:800;color:#3498DB">${espPtsObt}</div>
           <div style="font-size:10px;color:var(--gris)">de ${maxEsp} pts</div>
         </div>
-      </div>
+      </div>`}
       ${e.pdf_respuestas_url?`<a href="${e.pdf_respuestas_url}" target="_blank" style="display:block;background:#E8F5E9;color:#1A6A3A;border:1.5px solid #1FAA72;padding:12px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;margin-bottom:12px">📥 Ver respuestas desarrolladas</a>`:''}
       <button onclick="irA('examen-pdf')" style="width:100%;background:var(--gc);color:var(--negro);border:1.5px solid var(--gm);padding:12px;border-radius:8px;font-size:14px;cursor:pointer;font-family:var(--FC)">← Volver a exámenes</button>
     </div>`;
