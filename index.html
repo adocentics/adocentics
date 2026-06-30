@@ -3739,10 +3739,17 @@ async function eliminarExamen(id){
   if(!confirm('¿Eliminar este examen?')) return;
   const res = await fetch(SUPABASE_URL+'/rest/v1/examenes_pdf?id=eq.'+id,{
     method:'DELETE',
-    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
+    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'return=representation'}
   });
-  if(res.ok){ toast('🗑 Examen eliminado','#E67E22'); await cargarTablaExamenes(); }
-  else toast('Error al eliminar','#C0392B');
+  if(!res.ok){ toast('Error al eliminar','#C0392B'); return; }
+  let borrados = [];
+  try{ borrados = await res.json(); }catch(e){ borrados = []; }
+  if(Array.isArray(borrados) && borrados.length===0){
+    toast('⚠️ No se eliminó — revisa permisos (RLS) en Supabase para examenes_pdf','#C0392B');
+    return;
+  }
+  toast('🗑 Examen eliminado','#E67E22');
+  await cargarTablaExamenes();
 }
 
 /* ══════════════════════════════════════════════
