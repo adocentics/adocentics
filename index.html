@@ -3413,7 +3413,21 @@ async function renderAdminExamenes(){
     <div class="card" style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
         <div><div class="card-titulo">Exámenes PDF</div><div class="card-sub">Exámenes reales MINEDU con hoja de respuestas</div></div>
-        <button onclick="mostrarFormNuevoExamen()" style="background:var(--azul);color:#fff;border:none;padding:9px 18px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC)">+ Nuevo examen</button>
+        <div style="display:flex;gap:8px">
+          <button onclick="mostrarFormNuevoExamen()" style="background:var(--azul);color:#fff;border:none;padding:9px 18px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC)">+ Nuevo examen</button>
+          <button onclick="document.getElementById('form-carga-masiva').style.display=document.getElementById('form-carga-masiva').style.display==='none'?'block':'none'" style="background:#0D1929;color:#fff;border:none;padding:9px 18px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC)">📋 Carga masiva</button>
+        </div>
+      </div>
+      <div id="form-carga-masiva" style="display:none;background:#0D1929;border-radius:12px;padding:20px;margin-bottom:20px">
+        <div style="font-family:var(--FT);font-size:15px;font-weight:600;margin-bottom:8px;color:#fff">Carga masiva por links</div>
+        <div style="font-size:12px;color:#8BA5C0;margin-bottom:10px;line-height:1.6">Una línea por examen, separado por <code>|</code>:<br>
+        <code>título | año | concurso(nombramiento/ascenso) | total preguntas | preg. HG | url pdf examen | url pdf respuestas (opcional) | clave (letras seguidas, sin espacios, largo = total preguntas)</code></div>
+        <textarea id="masivo-input" rows="6" placeholder="Examen Nombramiento Primaria 2022|2022|nombramiento|75|25|https://drive.google.com/.../examen.pdf|https://drive.google.com/.../resp.pdf|ABCDABCD...(75 letras)
+Examen Ascenso Matemática 2021|2021|ascenso|90|30|https://...pdf||DCBADCBA...(90 letras)" style="width:100%;border:1px solid rgba(255,255,255,.15);background:#162033;color:#fff;border-radius:7px;padding:10px 12px;font-size:12px;font-family:monospace;outline:none;resize:vertical;box-sizing:border-box"></textarea>
+        <div style="display:flex;gap:10px;align-items:center;margin-top:10px">
+          <button onclick="importarExamenesMasivo()" style="background:var(--azul);color:#fff;border:none;padding:9px 20px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--FC)">Importar todo</button>
+          <span id="masivo-status" style="font-size:12px;color:#8BA5C0"></span>
+        </div>
       </div>
       <div id="form-nuevo-examen" style="display:none;background:var(--gc);border-radius:12px;padding:20px;margin-bottom:20px">
         <div style="font-family:var(--FT);font-size:15px;font-weight:600;margin-bottom:16px" id="form-exam-titulo">Nuevo examen PDF</div>
@@ -3426,6 +3440,9 @@ async function renderAdminExamenes(){
           <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">AÑO</label><input id="exam-anio" type="number" placeholder="2024" min="2010" max="2030" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none;box-sizing:border-box"></div>
           <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">N° PREGUNTAS</label><input id="exam-total" type="number" placeholder="75" min="1" max="120" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none;box-sizing:border-box"></div>
           <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">ALTERNATIVAS</label><select id="exam-alts" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"><option value="4">4 (A B C D)</option><option value="3">3 (A B C)</option></select></div>
+          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">PREG. HAB. GENERALES</label><input id="exam-hg-total" type="number" placeholder="25" min="0" max="120" value="25" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none;box-sizing:border-box"></div>
+          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">PTS / PREG. HG</label><input id="exam-hg-pts" type="number" placeholder="2" min="0" max="20" step="0.5" value="2" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none;box-sizing:border-box"></div>
+          <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">PTS / PREG. ESP.</label><input id="exam-esp-pts" type="number" placeholder="3" min="0" max="20" step="0.5" value="3" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);outline:none;box-sizing:border-box"></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
           <div><label style="font-size:11px;color:var(--gris);font-weight:600;letter-spacing:.4px;display:block;margin-bottom:5px">PDF DEL EXAMEN <span style="font-weight:400">(PDF único ó HG si viene separado)</span></label><input id="exam-pdf-file" type="file" accept=".pdf" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--FC);box-sizing:border-box"></div>
@@ -3436,12 +3453,12 @@ async function renderAdminExamenes(){
           <div style="font-size:11px;color:var(--azul);font-weight:700;letter-spacing:.4px;margin-bottom:10px">🔑 CLAVE DE RESPUESTAS — pega las letras separadas por espacio</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px">
             <div>
-              <label style="font-size:11px;color:var(--gris);font-weight:600;display:block;margin-bottom:5px">HAB. GENERALES <span style="font-weight:400">(25 respuestas)</span></label>
+              <label style="font-size:11px;color:var(--gris);font-weight:600;display:block;margin-bottom:5px">HAB. GENERALES <span style="font-weight:400">(usa el N° de arriba)</span></label>
               <textarea id="exam-clave-hg" rows="3" placeholder="B A B C C A A B B C B C A B A C A B B C B C A A C" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:monospace;outline:none;resize:vertical;box-sizing:border-box;letter-spacing:2px"></textarea>
               <div style="font-size:10px;color:var(--gris);margin-top:4px" id="hg-count">0 / 25 respuestas</div>
             </div>
             <div>
-              <label style="font-size:11px;color:var(--gris);font-weight:600;display:block;margin-bottom:5px">ESPECIALIDAD <span style="font-weight:400">(50 respuestas)</span></label>
+              <label style="font-size:11px;color:var(--gris);font-weight:600;display:block;margin-bottom:5px">ESPECIALIDAD <span style="font-weight:400">(total − HG)</span></label>
               <textarea id="exam-clave-esp" rows="3" placeholder="A D B C A B C D A B C A D B C A B C D A B A C D B A D C B A B C A D B C A B D C A B C D A B C D A B" style="width:100%;border:1.5px solid var(--gm);border-radius:7px;padding:9px 12px;font-size:13px;font-family:monospace;outline:none;resize:vertical;box-sizing:border-box;letter-spacing:2px"></textarea>
               <div style="font-size:10px;color:var(--gris);margin-top:4px" id="esp-count">0 / 50 respuestas</div>
             </div>
@@ -3470,6 +3487,9 @@ function mostrarFormNuevoExamen(){
   document.getElementById('exam-anio').value='';
   document.getElementById('exam-total').value='75';
   document.getElementById('exam-alts').value='4';
+  document.getElementById('exam-hg-total').value='25';
+  document.getElementById('exam-hg-pts').value='2';
+  document.getElementById('exam-esp-pts').value='3';
   document.getElementById('exam-clave').value='';
   document.getElementById('exam-upload-status').textContent='';
 }
@@ -3495,6 +3515,9 @@ async function guardarExamen(){
   const anio     = parseInt(document.getElementById('exam-anio').value)||null;
   const total    = parseInt(document.getElementById('exam-total').value)||75;
   const alts     = parseInt(document.getElementById('exam-alts').value)||4;
+  const hgTotal  = parseInt(document.getElementById('exam-hg-total').value);
+  const hgPts    = parseFloat(document.getElementById('exam-hg-pts').value);
+  const espPts   = parseFloat(document.getElementById('exam-esp-pts').value);
   const claveRaw = combinarClavesHGESP() || document.getElementById('exam-clave').value.trim();
   const pdfFile  = document.getElementById('exam-pdf-file').files[0];
   const respFile = document.getElementById('exam-resp-file').files[0];
@@ -3511,6 +3534,13 @@ async function guardarExamen(){
       const [num, resp] = linea.trim().split('-');
       if(num && resp) respuestas[parseInt(num)] = resp.toUpperCase().trim();
     });
+  }
+  // Guardamos el split HG/Especialidad y los puntos por pregunta dentro del propio JSON de respuestas
+  if(!isNaN(hgTotal) || !isNaN(hgPts) || !isNaN(espPts)){
+    if(!respuestas) respuestas = {};
+    if(!isNaN(hgTotal)) respuestas._hg = hgTotal;
+    if(!isNaN(hgPts)) respuestas._hgPts = hgPts;
+    if(!isNaN(espPts)) respuestas._espPts = espPts;
   }
 
   const tipo = document.getElementById('exam-tipo')?.value||'pasado';
@@ -3556,6 +3586,64 @@ async function guardarExamen(){
     toast('Error subiendo archivos: '+e.message,'#C0392B');
     status.textContent='';
   }
+}
+
+async function importarExamenesMasivo(){
+  const raw = document.getElementById('masivo-input').value.trim();
+  const status = document.getElementById('masivo-status');
+  if(!raw){ status.textContent='Pega al menos una línea.'; status.style.color='#E67E22'; return; }
+  const lineas = raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  let ok=0, errores=[];
+  for(let i=0;i<lineas.length;i++){
+    status.textContent=`Procesando ${i+1} / ${lineas.length}...`;
+    const partes = lineas[i].split('|').map(p=>p.trim());
+    const [titulo, anioStr, concurso, totalStr, hgStr, urlPdf, urlResp, claveRaw] = partes;
+    if(!titulo || !totalStr || !urlPdf){
+      errores.push(`Línea ${i+1}: faltan campos obligatorios (título, total preguntas o url pdf).`);
+      continue;
+    }
+    const total = parseInt(totalStr);
+    const hgTotal = parseInt(hgStr);
+    const letras = (claveRaw||'').replace(/[^ABCDabcd]/g,'').toUpperCase();
+    if(letras && letras.length!==total){
+      errores.push(`Línea ${i+1}: la clave tiene ${letras.length} letras pero el total de preguntas es ${total}. Se guardó sin clave.`);
+    }
+    const respuestas = {};
+    if(letras && letras.length===total){
+      for(let n=1;n<=total;n++) respuestas[n]=letras[n-1];
+    }
+    if(!isNaN(hgTotal)){ respuestas._hg=hgTotal; respuestas._hgPts=2; respuestas._espPts=3; }
+    const payload = {
+      titulo,
+      especialidad: null,
+      concurso: (concurso==='ascenso')?'ascenso':'nombramiento',
+      anio: parseInt(anioStr)||null,
+      total_preguntas: total,
+      alternativas: 4,
+      tipo_examen: 'pasado',
+      activo: true,
+      pdf_examen_url: urlPdf,
+      pdf_respuestas_url: urlResp||null,
+      respuestas: Object.keys(respuestas).length?respuestas:null
+    };
+    try{
+      const res = await fetch(SUPABASE_URL+'/rest/v1/examenes_pdf',{
+        method:'POST',
+        headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+        body:JSON.stringify(payload)
+      });
+      if(res.ok) ok++;
+      else errores.push(`Línea ${i+1}: error del servidor al guardar.`);
+    } catch(err){
+      errores.push(`Línea ${i+1}: ${err.message}`);
+    }
+  }
+  status.textContent = `✅ ${ok} de ${lineas.length} exámenes importados.` + (errores.length?` ⚠️ ${errores.length} con problemas (ver consola).`:'');
+  status.style.color = errores.length? '#E67E22' : '#1FAA72';
+  if(errores.length) console.warn('Errores en carga masiva:\n'+errores.join('\n'));
+  toast(ok+' examen(es) importado(s)','#1A7A4A');
+  document.getElementById('masivo-input').value='';
+  await cargarTablaExamenes();
 }
 
 async function cargarTablaExamenes(){
@@ -3618,10 +3706,15 @@ async function editarExamen(id){
   document.getElementById('exam-anio').value=e.anio||'';
   document.getElementById('exam-total').value=e.total_preguntas||75;
   document.getElementById('exam-alts').value=e.alternativas||4;
+  document.getElementById('exam-hg-total').value=(e.respuestas&&e.respuestas._hg!=null)?e.respuestas._hg:25;
+  document.getElementById('exam-hg-pts').value=(e.respuestas&&e.respuestas._hgPts!=null)?e.respuestas._hgPts:2;
+  document.getElementById('exam-esp-pts').value=(e.respuestas&&e.respuestas._espPts!=null)?e.respuestas._espPts:3;
   document.getElementById('exam-tipo').value=e.tipo_examen||'pasado';
-  // Reconstruir clave de respuestas
+  // Reconstruir clave de respuestas (excluyendo metadatos internos _hg, _hgPts, _espPts)
   if(e.respuestas){
-    const lineas = Object.entries(e.respuestas).sort((a,b)=>parseInt(a[0])-parseInt(b[0])).map(([n,r])=>n+'-'+r).join('\n');
+    const lineas = Object.entries(e.respuestas)
+      .filter(([n])=>!isNaN(parseInt(n)))
+      .sort((a,b)=>parseInt(a[0])-parseInt(b[0])).map(([n,r])=>n+'-'+r).join('\n');
     document.getElementById('exam-clave').value=lineas;
   }
   document.getElementById('form-nuevo-examen').scrollIntoView({behavior:'smooth'});
@@ -3914,22 +4007,24 @@ function entregarSimulacroPDF(){
   if(_cronometroInterval){ clearInterval(_cronometroInterval); _cronometroInterval = null; }
   const e = _examenPDFActual;
   const total = e.total_preguntas;
-  const respondidas = Object.keys(_respuestasDocente).length;
-  if(respondidas < total){
-    if(!confirm('Tienes '+( total - respondidas)+' preguntas sin responder. ¿Deseas entregar igual?')) return;
+  const respuestas = Object.keys(_respuestasDocente).length;
+  if(respuestas < total){
+    if(!confirm('Tienes '+( total - respuestas)+' preguntas sin responder. ¿Deseas entregar igual?')) return;
   }
   // Calcular puntaje
   const respCorrectas = e.respuestas || {};
+  const hgLimite = respCorrectas._hg ?? 25;
+  const hgPts = respCorrectas._hgPts ?? 2;
+  const espPts = respCorrectas._espPts ?? 3;
   let correctas=0;
   for(let i=1;i<=total;i++){
     if(_respuestasDocente[i] && respCorrectas[i] && _respuestasDocente[i]===respCorrectas[i]) correctas++;
   }
   const puntaje = (() => {
-    const respCorrectas = e.respuestas || {};
     let hg=0, esp=0;
     for(let n=1; n<=total; n++){
       if(_respuestasDocente[n] && respCorrectas[n] && _respuestasDocente[n]===respCorrectas[n]){
-        if(n<=25) hg+=2; else esp+=3;
+        if(n<=hgLimite) hg+=hgPts; else esp+=espPts;
       }
     }
     return hg+esp;
@@ -3939,20 +4034,27 @@ function entregarSimulacroPDF(){
 
 function mostrarResultadosPDF(correctas, total, puntaje){
   const e = _examenPDFActual;
-  const aprobado = puntaje >= 110;
-  // Calcular subpuntajes HG (preguntas 1-25, 2pts c/u) y Especialidad (26-75, 3pts c/u)
   const respCorrectas = e.respuestas || {};
-  let hgPts=0, espPts=0;
+  const hgLimite = respCorrectas._hg ?? 25;
+  const hgPts = respCorrectas._hgPts ?? 2;
+  const espPts = respCorrectas._espPts ?? 3;
+  const espTotal = Math.max(total - hgLimite, 0);
+  const maxHg = hgLimite * hgPts;
+  const maxEsp = espTotal * espPts;
+  const maxTotal = maxHg + maxEsp;
+  const aprobado = puntaje >= maxTotal*0.55;
+  // Calcular subpuntajes HG y Especialidad
+  let hgPtsObt=0, espPtsObt=0;
   for(let n=1; n<=total; n++){
     if(_respuestasDocente[n] && respCorrectas[n] && _respuestasDocente[n]===respCorrectas[n]){
-      if(n<=25) hgPts += 2;
-      else espPts += 3;
+      if(n<=hgLimite) hgPtsObt += hgPts;
+      else espPtsObt += espPts;
     }
   }
   // Si no hay clave cargada, estimar proporcional
-  if(hgPts===0 && espPts===0 && puntaje>0){
-    hgPts = Math.round(puntaje * 50/200);
-    espPts = puntaje - hgPts;
+  if(hgPtsObt===0 && espPtsObt===0 && puntaje>0){
+    hgPtsObt = Math.round(puntaje * maxHg/(maxTotal||1));
+    espPtsObt = puntaje - hgPtsObt;
   }
   // Guardar en historial
   const doc = getDocenteSesion();
@@ -3966,12 +4068,12 @@ function mostrarResultadosPDF(correctas, total, puntaje){
         concurso: e.concurso,
         modo: e.tipo_examen==='nuevo' ? 'examen_pdf_nuevo' : 'examen_pdf',
         "puntaje": puntaje,
-        "maximo": 200,
+        "maximo": maxTotal,
         total_preguntas: total,
         correctas,
         grupo_id: null,
-        subprueba_hg_puntaje: hgPts||null,
-        subprueba_esp_puntaje: espPts||null
+        subprueba_hg_puntaje: hgPtsObt||null,
+        subprueba_esp_puntaje: espPtsObt||null
       })
     }).catch(err=>console.warn('No se pudo guardar historial PDF:',err));
   }
@@ -3979,7 +4081,7 @@ function mostrarResultadosPDF(correctas, total, puntaje){
   contenido.innerHTML=`
     <div class="card" style="max-width:600px;margin:0 auto;text-align:center">
       <div style="font-size:48px;margin-bottom:16px">${aprobado?'🎉':'📚'}</div>
-      <div style="font-family:var(--FT);font-size:28px;font-weight:700;margin-bottom:8px">${puntaje} / 200</div>
+      <div style="font-family:var(--FT);font-size:28px;font-weight:700;margin-bottom:8px">${puntaje} / ${maxTotal}</div>
       <div style="font-size:16px;color:${aprobado?'var(--verde)':'#C0392B'};font-weight:600;margin-bottom:24px">${aprobado?'¡Aprobado!':'Por mejorar'}</div>
       <div style="background:var(--gc);border-radius:10px;padding:20px;margin-bottom:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px;text-align:center">
         <div><div style="font-size:24px;font-weight:700;color:var(--azul)">${correctas}</div><div style="font-size:12px;color:var(--gris)">CORRECTAS</div></div>
@@ -3988,13 +4090,13 @@ function mostrarResultadosPDF(correctas, total, puntaje){
       <div style="background:var(--gc);border-radius:10px;padding:16px;margin-bottom:24px;display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:center">
         <div style="background:white;border-radius:8px;padding:12px;border-left:4px solid #E91E8C">
           <div style="font-size:11px;font-weight:700;color:var(--gris);letter-spacing:.5px;margin-bottom:6px">🎯 HAB. GENERALES</div>
-          <div style="font-size:22px;font-weight:800;color:#E91E8C">${hgPts}</div>
-          <div style="font-size:10px;color:var(--gris)">de 50 pts</div>
+          <div style="font-size:22px;font-weight:800;color:#E91E8C">${hgPtsObt}</div>
+          <div style="font-size:10px;color:var(--gris)">de ${maxHg} pts</div>
         </div>
         <div style="background:white;border-radius:8px;padding:12px;border-left:4px solid #3498DB">
           <div style="font-size:11px;font-weight:700;color:var(--gris);letter-spacing:.5px;margin-bottom:6px">📘 ESPECIALIDAD</div>
-          <div style="font-size:22px;font-weight:800;color:#3498DB">${espPts}</div>
-          <div style="font-size:10px;color:var(--gris)">de 150 pts</div>
+          <div style="font-size:22px;font-weight:800;color:#3498DB">${espPtsObt}</div>
+          <div style="font-size:10px;color:var(--gris)">de ${maxEsp} pts</div>
         </div>
       </div>
       ${e.pdf_respuestas_url?`<a href="${e.pdf_respuestas_url}" target="_blank" style="display:block;background:#E8F5E9;color:#1A6A3A;border:1.5px solid #1FAA72;padding:12px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;margin-bottom:12px">📥 Ver respuestas desarrolladas</a>`:''}
@@ -4007,12 +4109,16 @@ document.addEventListener('input', function(e){
   if(e.target.id==='exam-clave-hg'){
     const letras = e.target.value.trim().split(/\s+/).filter(l=>l.match(/^[ABCDabcd]$/));
     const c = document.getElementById('hg-count');
-    if(c){ c.textContent=letras.length+' / 25 respuestas'; c.style.color=letras.length===25?'var(--verde)':'var(--gris)'; }
+    const hgN = parseInt(document.getElementById('exam-hg-total')?.value)||25;
+    if(c){ c.textContent=letras.length+' / '+hgN+' respuestas'; c.style.color=letras.length===hgN?'var(--verde)':'var(--gris)'; }
   }
   if(e.target.id==='exam-clave-esp'){
     const letras = e.target.value.trim().split(/\s+/).filter(l=>l.match(/^[ABCDabcd]$/));
     const c = document.getElementById('esp-count');
-    if(c){ c.textContent=letras.length+' / 50 respuestas'; c.style.color=letras.length===50?'var(--verde)':'var(--gris)'; }
+    const totalN = parseInt(document.getElementById('exam-total')?.value)||75;
+    const hgN = parseInt(document.getElementById('exam-hg-total')?.value)||25;
+    const espN = Math.max(totalN-hgN,0);
+    if(c){ c.textContent=letras.length+' / '+espN+' respuestas'; c.style.color=letras.length===espN?'var(--verde)':'var(--gris)'; }
   }
 });
 
